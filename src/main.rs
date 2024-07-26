@@ -71,15 +71,15 @@ fn print_headers(interfaces: &[String]) {
         return;
     }
 
-    print!("        ");
+    print!("{:>10} ", " ");
     for interface in interfaces {
-        print!("{:<20}", interface);
+        print!("{:>10} {:>10}  ", interface, " ");
     }
     println!();
 
-    print!("        ");
+    print!("{:>10} ", " ");
     for _ in interfaces {
-        print!("{:<10} {:<10}", "KB/s in", "KB/s out");
+        print!("{:>10} {:>10}  ", "KB/s in", "KB/s out");
     }
     println!();
 }
@@ -99,15 +99,13 @@ fn print_stats(
         return;
     }
 
-    print!("");
-
     for interface in &interface_names {
         if let (Some(&(prev_rx, prev_tx)), Some(&(cur_rx, cur_tx))) =
             (previous.get(interface), current.get(interface))
         {
             let rx_kbps = (cur_rx.saturating_sub(prev_rx)) as f64 / 1024.0;
             let tx_kbps = (cur_tx.saturating_sub(prev_tx)) as f64 / 1024.0;
-            print!("{:<10.2} {:<10.2} ", rx_kbps, tx_kbps);
+            print!("{:>10.2} {:>10.2}  ", rx_kbps, tx_kbps);
         }
     }
     println!();
