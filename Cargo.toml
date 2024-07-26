@@ -7,3 +7,4 @@ edition = "2021"
 tokio = { version = "1", features = ["full"] }
 regex = "1"
 clap = { version = "3.0", features = ["derive"] }
+vergen = "6"
