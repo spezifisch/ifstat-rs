@@ -6,8 +6,11 @@ use std::io::{BufRead, BufReader};
 use tokio::time::{sleep, Duration};
 use lazy_static::lazy_static;
 
+const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
+const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
+
 #[derive(Parser)]
-#[clap(version = "1.0", author = "Your Name", long_version = LONG_VERSION.as_str())]
+#[clap(version = "1.0", author = AUTHOR, long_version = LONG_VERSION.as_str())]
 struct Opts {
     /// Interfaces to monitor, separated by commas (e.g., "eth0,lo")
     #[clap(short, long)]
@@ -42,8 +45,8 @@ lazy_static! {
             Commit: {}\n\
             Build Timestamp: {}\n\
             Rust Version: {}\n\
-            Repo: https://github.com/your-username/ifstat-rs",
-            commit_hash, build_timestamp, rust_version
+            Repo: {}",
+            commit_hash, build_timestamp, rust_version, REPO_URL
         )
     };
 }
