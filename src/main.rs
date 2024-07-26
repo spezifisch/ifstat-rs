@@ -66,22 +66,36 @@ fn print_stats(
         interfaces.to_vec()
     };
 
-    let mut header_printed = false;
+    if interface_names.is_empty() {
+        return;
+    }
 
-    for interface in interface_names {
+    let mut header_printed = false;
+    let mut lines = vec![];
+
+    for interface in &interface_names {
         if let (Some(&(prev_rx, prev_tx)), Some(&(cur_rx, cur_tx))) =
-            (previous.get(&interface), current.get(&interface))
+            (previous.get(interface), current.get(interface))
         {
             if !header_printed {
-                println!("{:>10} {:>10}   {:>10} {:>10}", "Interface", "KB/s in", "KB/s out", "Interface");
+                print!("{:>10} {:>10}   ", "Interface", "KB/s in");
+                for _ in &interface_names {
+                    print!("{:>10} ", "KB/s out");
+                }
+                println!();
                 header_printed = true;
             }
             let rx_kbps = (cur_rx.saturating_sub(prev_rx)) as f64 / 1024.0;
             let tx_kbps = (cur_tx.saturating_sub(prev_tx)) as f64 / 1024.0;
-            println!("{:>10} {:>10.2}   {:>10.2} {:>10}", interface, rx_kbps, tx_kbps, interface);
+            lines.push((interface, rx_kbps, tx_kbps));
         }
     }
+
     if header_printed {
+        for (interface, rx_kbps, tx_kbps) in &lines {
+            print!("{:>10} {:>10.2}   {:>10.2}", interface, rx_kbps, tx_kbps);
+            println!();
+        }
         println!();
     }
 }
