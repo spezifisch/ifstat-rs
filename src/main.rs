@@ -11,6 +11,21 @@ struct Opts {
     /// Interfaces to monitor, separated by commas (e.g., "eth0,lo")
     #[clap(short, long)]
     interfaces: Option<String>,
+
+    /// Enables monitoring of all interfaces found for which statistics are available.
+    #[clap(short = 'a')]
+    monitor_all: bool,
+
+    /// Enables monitoring of loopback interfaces for which statistics are available.
+    #[clap(short = 'l')]
+    monitor_loopback: bool,
+
+    /// Delay between updates in seconds (default is 1 second)
+    #[clap(default_value = "1")]
+    delay: f64,
+
+    /// Number of updates before stopping (default is unlimited)
+    count: Option<u64>,
 }
 
 #[tokio::main]
@@ -32,8 +47,17 @@ async fn main() {
         print_headers(&interfaces);
     }
 
+    let mut updates = 0;
+
     loop {
-        sleep(Duration::from_secs(1)).await;
+        if let Some(count) = opts.count {
+            if updates >= count {
+                break;
+            }
+        }
+
+        sleep(Duration::from_secs_f64(opts.delay)).await;
+
         match get_net_dev_stats() {
             Ok(current_stats) => {
                 if opts.interfaces.is_none() {
@@ -45,6 +69,8 @@ async fn main() {
             }
             Err(e) => eprintln!("Error reading /proc/net/dev: {}", e),
         }
+
+        updates += 1;
     }
 }
 
@@ -73,13 +99,13 @@ fn print_headers(interfaces: &[String]) {
 
     print!("{:>10} ", " ");
     for interface in interfaces {
-        print!("{:>10} {:>10}  ", interface, " ");
+        print!("{:<20}", interface);
     }
     println!();
 
     print!("{:>10} ", " ");
     for _ in interfaces {
-        print!("{:>10} {:>10}  ", "KB/s in", "KB/s out");
+        print!("{:<10} {:<10}", "KB/s in", "KB/s out");
     }
     println!();
 }
@@ -99,13 +125,15 @@ fn print_stats(
         return;
     }
 
+    print!("{:>10} ", " ");
+
     for interface in &interface_names {
         if let (Some(&(prev_rx, prev_tx)), Some(&(cur_rx, cur_tx))) =
             (previous.get(interface), current.get(interface))
         {
             let rx_kbps = (cur_rx.saturating_sub(prev_rx)) as f64 / 1024.0;
             let tx_kbps = (cur_tx.saturating_sub(prev_tx)) as f64 / 1024.0;
-            print!("{:>10.2} {:>10.2}  ", rx_kbps, tx_kbps);
+            print!("{:<10.2} {:<10.2} ", rx_kbps, tx_kbps);
         }
     }
     println!();
