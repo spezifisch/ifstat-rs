@@ -1,4 +1,4 @@
-use clap::{Parser, Arg};
+use clap::{Parser};
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader};
 use tokio::time::{sleep, Duration};
 
 #[derive(Parser)]
-#[clap(version = "1.0", author = "Your Name", about = "ifstat-rs: A tool to report network interface statistics.\n\nBuilt with Rust.\nBuild info:\nCommit: {}\nRepo: https://github.com/your-username/ifstat-rs", long_version = &*long_version())]
+#[clap(version = "1.0", author = "Your Name", long_version = long_version())]
 struct Opts {
     /// Interfaces to monitor, separated by commas (e.g., "eth0,lo")
     #[clap(short, long)]
@@ -28,15 +28,23 @@ struct Opts {
     count: Option<u64>,
 }
 
-fn long_version() -> String {
-    let commit_hash = option_env!("VERGEN_GIT_SHA").unwrap_or("unknown");
-    let build_timestamp = option_env!("VERGEN_BUILD_TIMESTAMP").unwrap_or("unknown");
-    let rust_version = option_env!("VERGEN_RUSTC_SEMVER").unwrap_or("unknown");
+fn long_version() -> &'static str {
+    const LONG_VERSION: &str = {
+        let commit_hash = option_env!("VERGEN_GIT_SHA").unwrap_or("unknown");
+        let build_timestamp = option_env!("VERGEN_BUILD_TIMESTAMP").unwrap_or("unknown");
+        let rust_version = option_env!("VERGEN_RUSTC_SEMVER").unwrap_or("unknown");
 
-    format!(
-        "Commit: {}\nBuild Timestamp: {}\nRust Version: {}\nRepo: https://github.com/your-username/ifstat-rs",
-        commit_hash, build_timestamp, rust_version
-    )
+        concat!(
+            "ifstat-rs: A tool to report network interface statistics.\n\n",
+            "Built with Rust.\n\n",
+            "Build info:\n",
+            "Commit: ", commit_hash, "\n",
+            "Build Timestamp: ", build_timestamp, "\n",
+            "Rust Version: ", rust_version, "\n",
+            "Repo: https://github.com/spezifisch/ifstat-rs"
+        )
+    };
+    LONG_VERSION
 }
 
 #[tokio::main]
