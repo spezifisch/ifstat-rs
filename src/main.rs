@@ -4,9 +4,10 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use tokio::time::{sleep, Duration};
+use lazy_static::lazy_static;
 
 #[derive(Parser)]
-#[clap(version = "1.0", author = "Your Name", long_version = long_version())]
+#[clap(version = "1.0", author = "Your Name", long_version = LONG_VERSION.as_str())]
 struct Opts {
     /// Interfaces to monitor, separated by commas (e.g., "eth0,lo")
     #[clap(short, long)]
@@ -28,21 +29,23 @@ struct Opts {
     count: Option<u64>,
 }
 
-fn long_version() -> String {
-    let commit_hash = option_env!("VERGEN_GIT_SHA").unwrap_or("unknown");
-    let build_timestamp = option_env!("VERGEN_BUILD_TIMESTAMP").unwrap_or("unknown");
-    let rust_version = option_env!("VERGEN_RUSTC_SEMVER").unwrap_or("unknown");
+lazy_static! {
+    static ref LONG_VERSION: String = {
+        let commit_hash = option_env!("VERGEN_GIT_SHA").unwrap_or("unknown");
+        let build_timestamp = option_env!("VERGEN_BUILD_TIMESTAMP").unwrap_or("unknown");
+        let rust_version = option_env!("VERGEN_RUSTC_SEMVER").unwrap_or("unknown");
 
-    format!(
-        "ifstat-rs: A tool to report network interface statistics.\n\n\
-        Built with Rust.\n\n\
-        Build info:\n\
-        Commit: {}\n\
-        Build Timestamp: {}\n\
-        Rust Version: {}\n\
-        Repo: https://github.com/spezifisch/ifstat-rs",
-        commit_hash, build_timestamp, rust_version
-    )
+        format!(
+            "ifstat-rs: A tool to report network interface statistics.\n\n\
+            Built with Rust.\n\n\
+            Build info:\n\
+            Commit: {}\n\
+            Build Timestamp: {}\n\
+            Rust Version: {}\n\
+            Repo: https://github.com/your-username/ifstat-rs",
+            commit_hash, build_timestamp, rust_version
+        )
+    };
 }
 
 #[tokio::main]
