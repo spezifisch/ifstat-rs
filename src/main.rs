@@ -70,12 +70,24 @@ async fn main() {
     // Get initial network statistics
     let mut previous_stats = get_net_dev_stats().unwrap();
 
-    // Print headers based on specified or available interfaces
-    if opts.interfaces.is_none() {
-        print_headers(&previous_stats.keys().cloned().collect::<Vec<_>>());
+    // Determine which interfaces to monitor
+    let monitor_interfaces: Vec<String> = if opts.monitor_all {
+        previous_stats.keys().cloned().collect()
+    } else if opts.interfaces.is_some() {
+        interfaces
+    } else if opts.monitor_loopback {
+        previous_stats.keys().cloned().collect()
     } else {
-        print_headers(&interfaces);
-    }
+        previous_stats
+            .keys()
+            .filter(|iface| !iface.starts_with("lo"))
+            .cloned()
+            .collect()
+    };
+
+    // Print headers based on specified or available interfaces
+    let header_repeat_interval = 20;
+    print_headers(&monitor_interfaces);
 
     // Use first_measurement delay if provided, otherwise use delay
     let first_delay = opts.first_measurement.unwrap_or(opts.delay);
@@ -85,6 +97,7 @@ async fn main() {
     sleep(Duration::from_secs_f64(first_delay)).await;
 
     let mut updates = 0;
+    let mut lines_since_last_header = 0;
 
     loop {
         // Check if the number of updates has reached the specified count
@@ -97,14 +110,17 @@ async fn main() {
         // Get current network statistics
         match get_net_dev_stats() {
             Ok(current_stats) => {
-                if opts.interfaces.is_none() {
-                    // Print stats for all available interfaces
-                    print_stats(&previous_stats, &current_stats, &previous_stats.keys().cloned().collect::<Vec<_>>());
-                } else {
-                    // Print stats for specified interfaces
-                    print_stats(&previous_stats, &current_stats, &interfaces);
+                // Print headers again if enough lines have been printed
+                if lines_since_last_header >= header_repeat_interval {
+                    print_headers(&monitor_interfaces);
+                    lines_since_last_header = 0;
                 }
+
+                // Print stats for the monitored interfaces
+                print_stats(&previous_stats, &current_stats, &monitor_interfaces);
                 previous_stats = current_stats;
+
+                lines_since_last_header += 1;
             }
             Err(e) => eprintln!("Error reading /proc/net/dev: {}", e),
         }
@@ -160,11 +176,7 @@ fn print_stats(
     current: &HashMap<String, (u64, u64)>,
     interfaces: &[String],
 ) {
-    let interface_names: Vec<_> = if interfaces.is_empty() {
-        current.keys().cloned().collect()
-    } else {
-        interfaces.to_vec()
-    };
+    let interface_names: Vec<_> = interfaces.to_vec();
 
     if interface_names.is_empty() {
         return;
