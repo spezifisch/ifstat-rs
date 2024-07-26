@@ -28,6 +28,10 @@ struct Opts {
     #[clap(default_value = "1")]
     delay: f64,
 
+    /// Delay before the first measurement in seconds (default is same as --delay)
+    #[clap(long)]
+    first_measurement: Option<f64>,
+
     /// Number of updates before stopping (default is unlimited)
     count: Option<u64>,
 }
@@ -73,6 +77,13 @@ async fn main() {
         print_headers(&interfaces);
     }
 
+    // Use first_measurement delay if provided, otherwise use delay
+    let first_delay = opts.first_measurement.unwrap_or(opts.delay);
+    let regular_delay = opts.delay;
+
+    // Sleep for the first delay
+    sleep(Duration::from_secs_f64(first_delay)).await;
+
     let mut updates = 0;
 
     loop {
@@ -82,9 +93,6 @@ async fn main() {
                 break;
             }
         }
-
-        // Sleep for the specified delay duration
-        sleep(Duration::from_secs_f64(opts.delay)).await;
 
         // Get current network statistics
         match get_net_dev_stats() {
@@ -102,6 +110,9 @@ async fn main() {
         }
 
         updates += 1;
+
+        // Sleep for the regular delay
+        sleep(Duration::from_secs_f64(regular_delay)).await;
     }
 }
 
