@@ -30,6 +30,7 @@ struct Opts {
 
 #[tokio::main]
 async fn main() {
+    // Parse command-line options
     let opts: Opts = Opts::parse();
     let interfaces: Vec<String> = opts
         .interfaces
@@ -39,8 +40,10 @@ async fn main() {
         .map(|s| s.trim().to_string())
         .collect();
 
+    // Get initial network statistics
     let mut previous_stats = get_net_dev_stats().unwrap();
 
+    // Print headers based on specified or available interfaces
     if opts.interfaces.is_none() {
         print_headers(&previous_stats.keys().cloned().collect::<Vec<_>>());
     } else {
@@ -50,19 +53,24 @@ async fn main() {
     let mut updates = 0;
 
     loop {
+        // Check if the number of updates has reached the specified count
         if let Some(count) = opts.count {
             if updates >= count {
                 break;
             }
         }
 
+        // Sleep for the specified delay duration
         sleep(Duration::from_secs_f64(opts.delay)).await;
 
+        // Get current network statistics
         match get_net_dev_stats() {
             Ok(current_stats) => {
                 if opts.interfaces.is_none() {
+                    // Print stats for all available interfaces
                     print_stats(&previous_stats, &current_stats, &previous_stats.keys().cloned().collect::<Vec<_>>());
                 } else {
+                    // Print stats for specified interfaces
                     print_stats(&previous_stats, &current_stats, &interfaces);
                 }
                 previous_stats = current_stats;
@@ -74,13 +82,14 @@ async fn main() {
     }
 }
 
+// Function to read and parse network statistics from /proc/net/dev
 fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let file = File::open("/proc/net/dev")?;
     let reader = BufReader::new(file);
     let mut stats = HashMap::new();
     let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+.*\s+(\d+)\s+").unwrap();
 
-    for line in reader.lines().skip(2) {
+    for line in reader.lines().skip(2) { // Skip the header lines
         let line = line?;
         if let Some(caps) = re.captures(&line) {
             let interface = caps[1].to_string();
@@ -92,6 +101,7 @@ fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     Ok(stats)
 }
 
+// Function to print headers for the statistics table
 fn print_headers(interfaces: &[String]) {
     if interfaces.is_empty() {
         return;
@@ -110,6 +120,7 @@ fn print_headers(interfaces: &[String]) {
     println!();
 }
 
+// Function to print the network statistics
 fn print_stats(
     previous: &HashMap<String, (u64, u64)>,
     current: &HashMap<String, (u64, u64)>,
