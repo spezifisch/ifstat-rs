@@ -18,6 +18,7 @@ async fn main() {
     let opts: Opts = Opts::parse();
     let interfaces: Vec<String> = opts
         .interfaces
+        .clone()
         .unwrap_or_default()
         .split(',')
         .map(|s| s.trim().to_string())
@@ -25,13 +26,21 @@ async fn main() {
 
     let mut previous_stats = get_net_dev_stats().unwrap();
 
-    print_headers(&interfaces);
+    if opts.interfaces.is_none() {
+        print_headers(&previous_stats.keys().cloned().collect::<Vec<_>>());
+    } else {
+        print_headers(&interfaces);
+    }
 
     loop {
         sleep(Duration::from_secs(1)).await;
         match get_net_dev_stats() {
             Ok(current_stats) => {
-                print_stats(&previous_stats, &current_stats, &interfaces);
+                if opts.interfaces.is_none() {
+                    print_stats(&previous_stats, &current_stats, &previous_stats.keys().cloned().collect::<Vec<_>>());
+                } else {
+                    print_stats(&previous_stats, &current_stats, &interfaces);
+                }
                 previous_stats = current_stats;
             }
             Err(e) => eprintln!("Error reading /proc/net/dev: {}", e),
@@ -89,6 +98,8 @@ fn print_stats(
     if interface_names.is_empty() {
         return;
     }
+
+    print!("");
 
     for interface in &interface_names {
         if let (Some(&(prev_rx, prev_tx)), Some(&(cur_rx, cur_tx))) =
