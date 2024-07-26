@@ -25,6 +25,8 @@ async fn main() {
 
     let mut previous_stats = get_net_dev_stats().unwrap();
 
+    print_headers(&interfaces);
+
     loop {
         sleep(Duration::from_secs(1)).await;
         match get_net_dev_stats() {
@@ -55,6 +57,24 @@ fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     Ok(stats)
 }
 
+fn print_headers(interfaces: &[String]) {
+    if interfaces.is_empty() {
+        return;
+    }
+
+    print!("        ");
+    for interface in interfaces {
+        print!("{:<20}", interface);
+    }
+    println!();
+
+    print!("        ");
+    for _ in interfaces {
+        print!("{:<10} {:<10}", "KB/s in", "KB/s out");
+    }
+    println!();
+}
+
 fn print_stats(
     previous: &HashMap<String, (u64, u64)>,
     current: &HashMap<String, (u64, u64)>,
@@ -70,32 +90,14 @@ fn print_stats(
         return;
     }
 
-    let mut header_printed = false;
-    let mut lines = vec![];
-
     for interface in &interface_names {
         if let (Some(&(prev_rx, prev_tx)), Some(&(cur_rx, cur_tx))) =
             (previous.get(interface), current.get(interface))
         {
-            if !header_printed {
-                print!("{:>10} {:>10}   ", "Interface", "KB/s in");
-                for _ in &interface_names {
-                    print!("{:>10} ", "KB/s out");
-                }
-                println!();
-                header_printed = true;
-            }
             let rx_kbps = (cur_rx.saturating_sub(prev_rx)) as f64 / 1024.0;
             let tx_kbps = (cur_tx.saturating_sub(prev_tx)) as f64 / 1024.0;
-            lines.push((interface, rx_kbps, tx_kbps));
+            print!("{:<10.2} {:<10.2} ", rx_kbps, tx_kbps);
         }
     }
-
-    if header_printed {
-        for (interface, rx_kbps, tx_kbps) in &lines {
-            print!("{:>10} {:>10.2}   {:>10.2}", interface, rx_kbps, tx_kbps);
-            println!();
-        }
-        println!();
-    }
+    println!();
 }
