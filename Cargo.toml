@@ -3,7 +3,7 @@ name = "ifstat-rs"
 version = "1.0.0"
 authors = ["spezifisch <spezifisch+JOKING@gmail.com>"]
 edition = "2018"
-description = "ifstat-rs: A tool to report network interface statistics."
+description = "A tool to report network interface statistics."
 repository = "https://github.com/spezifisch/ifstat-rs"
 license = "MIT"
 
@@ -12,8 +12,9 @@ tokio = { version = "1", features = ["full"] }
 regex = "1"
 clap = { version = "3.0", features = ["derive"] }
 lazy_static = "1.4"
-ntapi = "=0.3.6"
 
+[target.'cfg(windows)'.dependencies]
+ntapi = "0.4.1"
 
 [build-dependencies]
 vergen = "6"
