@@ -304,6 +304,7 @@ version = "1.0.0"
 dependencies = [
  "clap",
  "lazy_static",
+ "ntapi",
  "regex",
  "tokio",
  "vergen",
@@ -418,9 +419,9 @@ dependencies = [
 
 [[package]]
 name = "ntapi"
-version = "0.3.7"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c28774a7fd2fbb4f0babd8237ce554b73af68021b5f695a3cebd6c59bac0980f"
+checksum = "3f6bb902e437b6d86e03cce10a7e2af662292c5dfef23b65899ea3ac9354ad44"
 dependencies = [
  "winapi",
 ]
