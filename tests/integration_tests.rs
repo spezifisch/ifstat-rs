@@ -3,26 +3,19 @@ use ifstat_rs::{parse_net_dev_stats, print_headers, print_stats, Opts};
 use std::collections::HashMap;
 use std::io::Cursor;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_net_dev_stats() {
-        let data = r#"
-Inter-|   Receive                                                |  Transmit
+#[test]
+fn test_parse_net_dev_stats() {
+    let data = r#"Inter-|   Receive                                                |  Transmit
  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
   eth0:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
     lo:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
 "#;
-        println!("Testing parse_net_dev_stats with data:\n{}", data);
-        let reader = Cursor::new(data);
-        let stats = parse_net_dev_stats(reader).unwrap();
+    let reader = Cursor::new(data);
+    let stats = parse_net_dev_stats(reader).unwrap();
 
-        assert_eq!(stats.len(), 2);
-        assert_eq!(stats["eth0"], (104013, 204386));
-        assert_eq!(stats["lo"], (104013, 204386));
-    }
+    assert_eq!(stats.len(), 2);
+    assert_eq!(stats["eth0"], (104013, 204386));
+    assert_eq!(stats["lo"], (104013, 204386));
 }
 
 #[test]
