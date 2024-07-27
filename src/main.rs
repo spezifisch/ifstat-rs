@@ -1,5 +1,5 @@
 use clap::Parser;
-use ifstat_rs::{get_net_dev_stats, print_headers, print_stats, Opts};
+use ifstat_rs::{get_net_dev_stats_from_file, print_headers, print_stats, Opts};
 use tokio::time::{sleep, Duration};
 
 #[tokio::main]
@@ -15,7 +15,7 @@ async fn main() {
         .collect();
 
     // Get initial network statistics
-    let mut previous_stats = get_net_dev_stats().unwrap();
+    let mut previous_stats = get_net_dev_stats_from_file().unwrap();
 
     // Determine which interfaces to monitor
     let monitor_interfaces: Vec<String> = if opts.monitor_all {
@@ -34,7 +34,7 @@ async fn main() {
 
     // Print headers based on specified or available interfaces
     let header_repeat_interval = 20;
-    print_headers(&monitor_interfaces, &mut std::io::stdout()).unwrap();
+    print_headers(&monitor_interfaces, &mut std::io::stdout(), opts.hide_zero_counters, &previous_stats).unwrap();
 
     // Use first_measurement delay if provided, otherwise use delay
     let first_delay = opts.first_measurement.unwrap_or(opts.delay);
@@ -55,16 +55,16 @@ async fn main() {
         }
 
         // Get current network statistics
-        match get_net_dev_stats() {
+        match get_net_dev_stats_from_file() {
             Ok(current_stats) => {
                 // Print headers again if enough lines have been printed
                 if lines_since_last_header >= header_repeat_interval {
-                    print_headers(&monitor_interfaces, &mut std::io::stdout()).unwrap();
+                    print_headers(&monitor_interfaces, &mut std::io::stdout(), opts.hide_zero_counters, &current_stats).unwrap();
                     lines_since_last_header = 0;
                 }
 
                 // Print stats for the monitored interfaces
-                print_stats(&previous_stats, &current_stats, &monitor_interfaces, &mut std::io::stdout()).unwrap();
+                print_stats(&previous_stats, &current_stats, &monitor_interfaces, &mut std::io::stdout(), opts.hide_zero_counters).unwrap();
                 previous_stats = current_stats;
 
                 lines_since_last_header += 1;

@@ -23,6 +23,10 @@ pub struct Opts {
     #[clap(short = 'l')]
     pub monitor_loopback: bool,
 
+    /// Hides interfaces with zero counters.
+    #[clap(short = 'z')]
+    pub hide_zero_counters: bool,
+
     /// Delay between updates in seconds (default is 1 second)
     #[clap(default_value = "1")]
     pub delay: f64,
@@ -54,11 +58,26 @@ lazy_static! {
     };
 }
 
-pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
-    let file = File::open("/proc/net/dev")?;
-    let reader = BufReader::new(file);
+fn filter_zero_counters(
+    stats: &HashMap<String, (u64, u64)>,
+    interfaces: &[String],
+) -> Vec<String> {
+    interfaces
+        .iter()
+        .filter(|iface| {
+            if let Some(&(rx, tx)) = stats.get(*iface) {
+                rx != 0 || tx != 0
+            } else {
+                false
+            }
+        })
+        .cloned()
+        .collect()
+}
+
+pub fn get_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let mut stats = HashMap::new();
-    let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+.*\s+(\d+)\s+").unwrap();
+    let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+(?:\d+\s+){7}(\d+)\s+").unwrap();
 
     for line in reader.lines().skip(2) {
         let line = line?;
@@ -72,7 +91,24 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
     Ok(stats)
 }
 
-pub fn print_headers(interfaces: &[String], writer: &mut dyn std::io::Write) -> std::io::Result<()> {
+pub fn get_net_dev_stats_from_file() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+    let file = File::open("/proc/net/dev")?;
+    let reader = BufReader::new(file);
+    get_net_dev_stats(reader)
+}
+
+pub fn print_headers(
+    interfaces: &[String],
+    writer: &mut dyn std::io::Write,
+    hide_zero_counters: bool,
+    stats: &HashMap<String, (u64, u64)>,
+) -> std::io::Result<()> {
+    let interfaces = if hide_zero_counters {
+        filter_zero_counters(stats, interfaces)
+    } else {
+        interfaces.to_vec()
+    };
+
     if interfaces.is_empty() {
         return Ok(());
     }
@@ -103,7 +139,14 @@ pub fn print_stats(
     current: &HashMap<String, (u64, u64)>,
     interfaces: &[String],
     writer: &mut dyn std::io::Write,
+    hide_zero_counters: bool,
 ) -> std::io::Result<()> {
+    let interfaces = if hide_zero_counters {
+        filter_zero_counters(current, interfaces)
+    } else {
+        interfaces.to_vec()
+    };
+
     for (i, interface) in interfaces.iter().enumerate() {
         if let (Some(&(prev_rx, prev_tx)), Some(&(cur_rx, cur_tx))) =
             (previous.get(interface), current.get(interface))
