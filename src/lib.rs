@@ -78,12 +78,14 @@ pub fn print_headers(interfaces: &[String], writer: &mut dyn std::io::Write) -> 
     }
 
     for interface in interfaces {
-        write!(writer, "{:>7}", interface)?;
+        let width = 18; // width for each interface field including space for in/out
+        let padded_name = format!("{:^width$}", interface, width = width);
+        write!(writer, "{}", padded_name)?;
     }
     writeln!(writer)?;
 
     for _ in interfaces {
-        write!(writer, "{:>-8}  {:>-8}", "KB/s in", "KB/s out")?;
+        write!(writer, "{:>8}  {:>8}", "KB/s in", "KB/s out")?;
     }
     writeln!(writer)?;
 
