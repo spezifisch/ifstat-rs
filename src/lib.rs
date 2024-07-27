@@ -27,9 +27,6 @@ use winapi::um::iphlpapi::GetIfTable;
 #[cfg(target_os = "windows")]
 use std::mem;
 
-#[cfg(target_os = "macos")]
-use std::process::Command;
-
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
 const LICENSE: &str = env!("CARGO_PKG_LICENSE");

@@ -13,14 +13,29 @@ jobs:
   build-and-test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: riscv64gc-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+          - os: archlinux
+            target: x86_64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
           - os: windows-latest
             target: x86_64-pc-windows-gnu
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+          - os: windows-latest
+            target: aarch64-pc-windows-gnu
 
     steps:
       - name: Checkout code
@@ -53,7 +68,7 @@ jobs:
           ./target/${{ matrix.target }}/release/ifstat-rs -V
           ./target/${{ matrix.target }}/release/ifstat-rs --version
           ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'archlinux'
 
       - name: Run program on macOS
         run: |
