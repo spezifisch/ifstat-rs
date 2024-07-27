@@ -2,9 +2,21 @@ use clap::Parser;
 use regex::Regex;
 use std::collections::HashMap;
 use std::env;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::BufRead;
 use lazy_static::lazy_static;
+
+#[cfg(target_os = "linux")]
+use std::fs::File;
+
+#[cfg(target_os = "windows")]
+use winapi::shared::ifmib::MIB_IFTABLE;
+#[cfg(target_os = "windows")]
+use winapi::um::iphlpapi::GetIfTable;
+#[cfg(target_os = "windows")]
+use std::mem;
+
+#[cfg(target_os = "macos")]
+use std::process::Command;
 
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
@@ -80,7 +92,47 @@ fn filter_zero_counters(
         .collect()
 }
 
-pub fn get_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+#[cfg(target_os = "linux")]
+pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+    let file = File::open("/proc/net/dev")?;
+    let reader = BufReader::new(file);
+    parse_net_dev_stats(reader)
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+    let output = Command::new("netstat")
+        .arg("-b")
+        .output()
+        .expect("Failed to execute netstat command");
+    let reader = BufReader::new(output.stdout.as_slice());
+    parse_net_dev_stats(reader)
+}
+
+#[cfg(target_os = "windows")]
+pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+    let mut table: MIB_IFTABLE = unsafe { mem::zeroed() };
+    let mut size = mem::size_of_val(&table) as u32;
+
+    unsafe {
+        if GetIfTable(&mut table, &mut size, 0) == 0 {
+            let mut stats = HashMap::new();
+            for i in 0..table.dwNumEntries {
+                let row = table.table[i as usize];
+                let name = format!("Interface {}", i);
+                stats.insert(name, (row.dwInOctets as u64, row.dwOutOctets as u64));
+            }
+            Ok(stats)
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Failed to retrieve network interface table",
+            ))
+        }
+    }
+}
+
+pub fn parse_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let mut stats = HashMap::new();
     let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+(?:\d+\s+){7}(\d+)\s+").unwrap();
 
@@ -95,68 +147,6 @@ pub fn get_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, 
             return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid line format"));
         }
     }
-    Ok(stats)
-}
-
-#[cfg(target_os = "linux")]
-pub fn get_net_dev_stats_from_file() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
-    let file = File::open("/proc/net/dev")?;
-    let reader = BufReader::new(file);
-    get_net_dev_stats(reader)
-}
-
-#[cfg(target_os = "windows")]
-pub fn get_net_dev_stats_from_file() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
-    use winapi::shared::ifmib::{MIB_IFROW, MIB_IFTABLE};
-    use winapi::shared::minwindef::DWORD;
-    use winapi::um::iphlpapi::GetIfTable;
-    use std::mem;
-    use std::ptr::null_mut;
-
-    let mut table_size: DWORD = 0;
-    let result = unsafe { GetIfTable(null_mut(), &mut table_size, 0) };
-    if result != winapi::shared::winerror::ERROR_INSUFFICIENT_BUFFER {
-        return Err(std::io::Error::new(std::io::ErrorKind::Other, "Failed to retrieve network interface table size"));
-    }
-
-    let mut table_buffer = vec![0u8; table_size as usize];
-    let table = table_buffer.as_mut_ptr() as *mut MIB_IFTABLE;
-    let result = unsafe { GetIfTable(table, &mut table_size, 0) };
-    if result != winapi::shared::winerror::NO_ERROR {
-        return Err(std::io::Error::new(std::io::ErrorKind::Other, "Failed to retrieve network interface table"));
-    }
-
-    let mut stats = HashMap::new();
-    unsafe {
-        for i in 0..(*table).dwNumEntries {
-            let row = &(*table).table[i as usize];
-            let interface = String::from_utf16_lossy(&row.wszName);
-            let rx_bytes = row.dwInOctets as u64;
-            let tx_bytes = row.dwOutOctets as u64;
-            stats.insert(interface, (rx_bytes, tx_bytes));
-        }
-    }
-    Ok(stats)
-}
-
-#[cfg(target_os = "macos")]
-pub fn get_net_dev_stats_from_file() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
-    use std::process::Command;
-    let output = Command::new("netstat").arg("-ib").output()?;
-    let reader = BufReader::new(output.stdout.as_slice());
-    let mut stats = HashMap::new();
-
-    for line in reader.lines().skip(1) {
-        let line = line?;
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() > 10 {
-            let interface = parts[0].to_string();
-            let rx_bytes: u64 = parts[6].parse().unwrap_or(0);
-            let tx_bytes: u64 = parts[9].parse().unwrap_or(0);
-            stats.insert(interface, (rx_bytes, tx_bytes));
-        }
-    }
-
     Ok(stats)
 }
 

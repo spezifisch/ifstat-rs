@@ -1,5 +1,5 @@
 use clap::Parser;
-use ifstat_rs::{get_net_dev_stats_from_file, print_headers, print_stats, Opts};
+use ifstat_rs::{get_net_dev_stats, print_headers, print_stats, Opts};
 use tokio::time::{sleep, Duration};
 
 #[tokio::main]
@@ -15,7 +15,7 @@ async fn main() {
         .collect();
 
     // Get initial network statistics
-    let mut previous_stats = get_net_dev_stats_from_file().unwrap();
+    let mut previous_stats = get_net_dev_stats().unwrap();
 
     // Determine which interfaces to monitor
     let monitor_interfaces: Vec<String> = if opts.monitor_all {
@@ -55,7 +55,7 @@ async fn main() {
         }
 
         // Get current network statistics
-        match get_net_dev_stats_from_file() {
+        match get_net_dev_stats() {
             Ok(current_stats) => {
                 // Print headers again if enough lines have been printed
                 if lines_since_last_header >= header_repeat_interval {
@@ -69,7 +69,7 @@ async fn main() {
 
                 lines_since_last_header += 1;
             }
-            Err(e) => eprintln!("Error reading /proc/net/dev: {}", e),
+            Err(e) => eprintln!("Error reading network statistics: {}", e),
         }
 
         updates += 1;

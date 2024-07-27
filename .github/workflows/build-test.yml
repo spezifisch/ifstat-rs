@@ -15,6 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        target: [x86_64-unknown-linux-gnu, x86_64-apple-darwin, x86_64-pc-windows-msvc]
 
     steps:
       - name: Checkout code
@@ -27,23 +28,38 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
+
       - name: Set environment variables
-        run: |
-          echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
+        run: echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Show config
-        run: |
-          cargo tree
-          cargo tree -d
+        run: cargo tree
 
       - name: Build
-        run: cargo build --release
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Run tests
-        run: cargo test --release
+        run: cargo test --release --target ${{ matrix.target }}
 
-      - name: Run program
+      - name: Run program on Linux
         run: |
-          cargo run -- -V
-          cargo run -- --version
-          cargo run -- -a 0 1
+          ./target/${{ matrix.target }}/release/ifstat-rs -V
+          ./target/${{ matrix.target }}/release/ifstat-rs --version
+          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Run program on macOS
+        run: |
+          ./target/${{ matrix.target }}/release/ifstat-rs -V
+          ./target/${{ matrix.target }}/release/ifstat-rs --version
+          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+        if: matrix.os == 'macos-latest'
+
+      - name: Run program on Windows
+        run: |
+          target\${{ matrix.target }}\release\ifstat-rs.exe -V
+          target\${{ matrix.target }}\release\ifstat-rs.exe --version
+          target\${{ matrix.target }}\release\ifstat-rs.exe -a 0 1
+        if: matrix.os == 'windows-latest'

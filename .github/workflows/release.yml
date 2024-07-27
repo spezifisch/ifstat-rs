@@ -10,8 +10,12 @@ on:
       - created
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        target: [x86_64-unknown-linux-gnu, x86_64-apple-darwin, x86_64-pc-windows-gnu]
 
     steps:
       - name: Checkout code
@@ -24,18 +28,17 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
+
       - name: Set environment variables
-        run: |
-          echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
+        run: echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Build
-        run: |
-          cargo tree
-          cargo tree -d
-          cargo build --release
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Run tests
-        run: cargo test --release
+        run: cargo test --release --target ${{ matrix.target }}
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -43,81 +46,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/release/ifstat-rs
-          asset_name: ifstat-rs-linux
-          asset_content_type: application/octet-stream
-
-  build-macos:
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: Set environment variables
-        run: |
-          echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
-
-      - name: Build
-        run: cargo build --release
-
-      - name: Run tests
-        run: cargo test --release
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/release/ifstat-rs
-          asset_name: ifstat-rs-macos
-          asset_content_type: application/octet-stream
-
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: Set environment variables
-        run: |
-          echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
-
-      - name: Build
-        run: cargo build --release
-
-      - name: Run tests
-        run: cargo test --release
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/release/ifstat-rs.exe
-          asset_name: ifstat-rs-windows.exe
+          asset_path: target/${{ matrix.target }}/release/ifstat-rs${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+          asset_name: ifstat-rs-${{ matrix.os }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
           asset_content_type: application/octet-stream
 
   release:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-macos, build-windows]
+    needs: build
 
     steps:
       - name: Create Release
@@ -137,7 +72,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/release/ifstat-rs
+          asset_path: target/x86_64-unknown-linux-gnu/release/ifstat-rs
           asset_name: ifstat-rs-linux
           asset_content_type: application/octet-stream
 
@@ -147,7 +82,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/release/ifstat-rs
+          asset_path: target/x86_64-apple-darwin/release/ifstat-rs
           asset_name: ifstat-rs-macos
           asset_content_type: application/octet-stream
 
@@ -157,6 +92,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/release/ifstat-rs.exe
+          asset_path: target/x86_64-pc-windows-gnu/release/ifstat-rs.exe
           asset_name: ifstat-rs-windows.exe
           asset_content_type: application/octet-stream
