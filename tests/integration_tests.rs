@@ -44,7 +44,7 @@ fn test_parse_net_dev_stats() {
 fn test_print_headers() {
     let interfaces = vec!["eth0".to_string(), "lo".to_string()];
     let expected = "\
-           eth0                 lo
+       eth0                 lo        
  KB/s in  KB/s out   KB/s in  KB/s out
 ";
     let mut output = Vec::new();
@@ -79,10 +79,8 @@ fn test_command_line_options() {
         "eth0,lo",
         "--first-measurement",
         "0.5",
-        "--delay",
-        "1.0",
-        "--count",
-        "10",
+        "--delay=1.0",
+        "--count=10",
     ]).unwrap();
     assert_eq!(opts.interfaces.unwrap(), "eth0,lo");
     assert_eq!(opts.first_measurement.unwrap(), 0.5);
