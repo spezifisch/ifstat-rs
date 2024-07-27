@@ -29,7 +29,10 @@ jobs:
           echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
 
       - name: Build
-        run: cargo build --release
+        run: |
+          cargo tree
+          cargo tree -d
+          cargo build --release
 
       - name: Run tests
         run: cargo test --release
