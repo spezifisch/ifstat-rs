@@ -1,10 +1,10 @@
 use clap::Parser;
+use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use lazy_static::lazy_static;
 
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
@@ -63,10 +63,7 @@ lazy_static! {
     };
 }
 
-fn filter_zero_counters(
-    stats: &HashMap<String, (u64, u64)>,
-    interfaces: &[String],
-) -> Vec<String> {
+fn filter_zero_counters(stats: &HashMap<String, (u64, u64)>, interfaces: &[String]) -> Vec<String> {
     interfaces
         .iter()
         .filter(|iface| {
@@ -80,7 +77,9 @@ fn filter_zero_counters(
         .collect()
 }
 
-pub fn get_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+pub fn get_net_dev_stats<R: BufRead>(
+    reader: R,
+) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let mut stats = HashMap::new();
     let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+(?:\d+\s+){7}(\d+)\s+").unwrap();
 
@@ -88,20 +87,81 @@ pub fn get_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, 
         let line = line?;
         if let Some(caps) = re.captures(&line) {
             let interface = caps[1].to_string();
-            let rx_bytes: u64 = caps[2].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid RX bytes"))?;
-            let tx_bytes: u64 = caps[3].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid TX bytes"))?;
+            let rx_bytes: u64 = caps[2].parse().map_err(|_| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid RX bytes")
+            })?;
+            let tx_bytes: u64 = caps[3].parse().map_err(|_| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid TX bytes")
+            })?;
             stats.insert(interface, (rx_bytes, tx_bytes));
         } else {
-            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid line format"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Invalid line format",
+            ));
         }
     }
     Ok(stats)
 }
 
+#[cfg(target_os = "linux")]
 pub fn get_net_dev_stats_from_file() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let file = File::open("/proc/net/dev")?;
     let reader = BufReader::new(file);
     get_net_dev_stats(reader)
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_net_dev_stats_from_file() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+    use std::process::Command;
+
+    let output = Command::new("netstat").arg("-bI").arg("en0").output()?;
+
+    let data = String::from_utf8_lossy(&output.stdout);
+    let mut stats = HashMap::new();
+    let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+(?:\d+\s+){6}\d+\s+(\d+)\s+").unwrap();
+
+    for line in data.lines().skip(1) {
+        if let Some(caps) = re.captures(line) {
+            let interface = caps[1].to_string();
+            let rx_bytes: u64 = caps[2].parse().unwrap_or(0);
+            let tx_bytes: u64 = caps[3].parse().unwrap_or(0);
+            stats.insert(interface, (rx_bytes, tx_bytes));
+        }
+    }
+    Ok(stats)
+}
+
+#[cfg(target_os = "windows")]
+pub fn get_net_dev_stats_from_file() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+    use std::ptr::null_mut;
+    use winapi::shared::minwindef::DWORD;
+    use winapi::um::iphlpapi::GetIfTable;
+    use winapi::um::iphlpapi::MIB_IFROW;
+    use winapi::um::iphlpapi::MIB_IFTABLE;
+
+    let mut size: DWORD = 0;
+    unsafe {
+        GetIfTable(null_mut(), &mut size, 0);
+    }
+    let mut table: Vec<u8> = vec![0; size as usize];
+    let table_ptr = table.as_mut_ptr() as *mut MIB_IFTABLE;
+
+    let result = unsafe { GetIfTable(table_ptr, &mut size, 0) };
+    if result != 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+
+    let table = unsafe { &*table_ptr };
+    let mut stats = HashMap::new();
+    for i in 0..table.dwNumEntries {
+        let row = unsafe { &*table.table.as_ptr().add(i as usize) };
+        let interface = format!("{}", row.dwIndex);
+        let rx_bytes: u64 = row.dwInOctets as u64;
+        let tx_bytes: u64 = row.dwOutOctets as u64;
+        stats.insert(interface, (rx_bytes, tx_bytes));
+    }
+    Ok(stats)
 }
 
 pub fn print_headers(
