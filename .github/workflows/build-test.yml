@@ -54,11 +54,11 @@ jobs:
       - name: Run tests
         run: cross test --release --target ${{ matrix.target }}
 
-      - name: Run program on Linux
+      - name: Run program on Linux/Arch
         run: |
-          cross run --target ${{ matrix.target }} -- -V
-          cross run --target ${{ matrix.target }} -- --version
-          cross run --target ${{ matrix.target }} -- -a 0 1
+          ./target/${{ matrix.target }}/release/ifstat-rs -V
+          ./target/${{ matrix.target }}/release/ifstat-rs --version
+          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'archlinux'
 
       - name: Run program on macOS
