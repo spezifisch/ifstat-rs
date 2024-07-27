@@ -71,21 +71,26 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
     }
     Ok(stats)
 }
-
 pub fn print_headers(interfaces: &[String], writer: &mut dyn std::io::Write) -> std::io::Result<()> {
     if interfaces.is_empty() {
         return Ok(());
     }
 
-    for interface in interfaces {
-        let width = 18; // width for each interface field including space for in/out
+    let width = 18; // width for each interface field including space for in/out
+    for (i, interface) in interfaces.iter().enumerate() {
         let padded_name = format!("{:^width$}", interface, width = width);
         write!(writer, "{}", padded_name)?;
+        if i < interfaces.len() - 1 {
+            write!(writer, "  ")?; // additional spaces between columns
+        }
     }
     writeln!(writer)?;
 
-    for _ in interfaces {
+    for (i, _) in interfaces.iter().enumerate() {
         write!(writer, "{:>8}  {:>8}", "KB/s in", "KB/s out")?;
+        if i < interfaces.len() - 1 {
+            write!(writer, "  ")?; // additional spaces between columns
+        }
     }
     writeln!(writer)?;
 
@@ -98,13 +103,16 @@ pub fn print_stats(
     interfaces: &[String],
     writer: &mut dyn std::io::Write,
 ) -> std::io::Result<()> {
-    for interface in interfaces {
+    for (i, interface) in interfaces.iter().enumerate() {
         if let (Some(&(prev_rx, prev_tx)), Some(&(cur_rx, cur_tx))) =
             (previous.get(interface), current.get(interface))
         {
             let rx_kbps = (cur_rx.saturating_sub(prev_rx)) as f64 / 1024.0;
             let tx_kbps = (cur_tx.saturating_sub(prev_tx)) as f64 / 1024.0;
             write!(writer, "{:>8.2}  {:>8.2}", rx_kbps, tx_kbps)?;
+            if i < interfaces.len() - 1 {
+                write!(writer, "  ")?; // additional spaces between columns
+            }
         }
     }
     writeln!(writer)?;
