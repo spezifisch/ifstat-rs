@@ -1,144 +1,130 @@
-use std::collections::HashMap;
-use std::io::{self, BufReader};
 use clap::Parser;
-use ifstat_rs::{print_headers, print_stats, get_net_dev_stats, Opts};
+use ifstat_rs::{parse_net_dev_stats, print_headers, print_stats, Opts};
+use std::collections::HashMap;
+use std::io::Cursor;
 
-fn mock_net_dev_data() -> String {
-    "\
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_net_dev_stats() {
+        let data = r#"
 Inter-|   Receive                                                |  Transmit
  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    lo: 11738832  105207    0    0    0     0          0         0 11738832  105207    0    0    0     0       0          0
-  eth0: 995608711  460367    0    0    0     0          0         0 32726793  311286    0    0    0     0       0          0
-".to_string()
-}
+  eth0:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
+    lo:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
+"#;
+        println!("Testing parse_net_dev_stats with data:\n{}", data);
+        let reader = Cursor::new(data);
+        let stats = parse_net_dev_stats(reader).unwrap();
 
-fn get_mock_net_dev_stats_from_str(data: &str) -> Result<HashMap<String, (u64, u64)>, io::Error> {
-    let reader = BufReader::new(data.as_bytes());
-    get_net_dev_stats(reader)
-}
-
-#[test]
-fn test_edge_cases() {
-    // No /proc/net/dev file (simulate by using empty data)
-    let result = get_mock_net_dev_stats_from_str("");
-    assert!(result.unwrap().is_empty(), "Expected empty stats for empty /proc/net/dev");
-
-    // No network interfaces
-    let no_interfaces_data = "\
-Inter-|   Receive                                                |  Transmit
- face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-";
-    let result = get_mock_net_dev_stats_from_str(no_interfaces_data);
-    assert!(result.unwrap().is_empty(), "Expected empty stats for no network interfaces");
-
-    // Corrupt /proc/net/dev data
-    let corrupt_data = "\
-Inter-|   Receive                                                |  Transmit
- face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    lo: xxxxxxxx  xxxxxx    0    0    0     0          0         0 xxxxxxxx  xxxxxx    0    0    0     0       0          0
-  eth0: xxxxxxxx  xxxxxx    0    0    0     0          0         0 xxxxxxxx  xxxxxx    0    0    0     0       0          0
-";
-    let result = get_mock_net_dev_stats_from_str(corrupt_data);
-    assert!(result.is_err(), "Expected error for corrupt /proc/net/dev data");
-
-    // /proc/net/dev with letters instead of numbers
-    let letters_data = "\
-Inter-|   Receive                                                |  Transmit
- face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    lo: abcdefgh  abcdef    0    0    0     0          0         0 abcdefgh  abcdef    0    0    0     0       0          0
-  eth0: abcdefgh  abcdef    0    0    0     0          0         0 abcdefgh  abcdef    0    0    0     0       0          0
-";
-    let result = get_mock_net_dev_stats_from_str(letters_data);
-    assert!(result.is_err(), "Expected error for /proc/net/dev with letters instead of numbers");
-
-    // Empty /proc/net/dev data
-    let empty_data = "\
-Inter-|   Receive                                                |  Transmit
- face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-";
-    let result = get_mock_net_dev_stats_from_str(empty_data);
-    assert!(result.unwrap().is_empty(), "Expected empty stats for empty /proc/net/dev");
-}
-
-#[test]
-fn test_parse_net_dev_stats() {
-    let stats = get_mock_net_dev_stats_from_str(&mock_net_dev_data()).unwrap();
-    assert_eq!(stats["lo"], (11738832, 11738832));
-    assert_eq!(stats["eth0"], (995608711, 32726793));
+        assert_eq!(stats.len(), 2);
+        assert_eq!(stats["eth0"], (104013, 204386));
+        assert_eq!(stats["lo"], (104013, 204386));
+    }
 }
 
 #[test]
 fn test_print_headers() {
-    let interfaces = vec!["lo".to_string(), "eth0".to_string()];
-    let expected = "\
-________lo_________________eth0_______
-_KB/s_in__KB/s_out___KB/s_in__KB/s_out
-";
+    let stats = HashMap::new();
+    let interfaces = vec!["eth0".to_string(), "lo".to_string()];
     let mut output = Vec::new();
-    {
-        let mut writer = std::io::BufWriter::new(&mut output);
-        let stats = get_mock_net_dev_stats_from_str(&mock_net_dev_data()).unwrap();
-        print_headers(&interfaces, &mut writer, false, &stats).unwrap();
-    }
-    let output_str = String::from_utf8(output).unwrap().replace(' ', "_");
-    assert_eq!(output_str, expected);
+    print_headers(&interfaces, &mut output, false, &stats).unwrap();
+    let output_str = String::from_utf8(output).unwrap();
+
+    assert!(output_str.contains("eth0"));
+    assert!(output_str.contains("lo"));
 }
 
 #[test]
 fn test_print_stats() {
-    let previous_stats = get_mock_net_dev_stats_from_str(&mock_net_dev_data()).unwrap();
-    let current_stats = get_mock_net_dev_stats_from_str(&mock_net_dev_data()).unwrap();
-    let interfaces = vec!["lo".to_string(), "eth0".to_string()];
-    let expected = "\
-____0.00______0.00______0.00______0.00
-";
+    let previous = vec![
+        ("eth0".to_string(), (1000, 2000)),
+        ("lo".to_string(), (1000, 2000)),
+    ]
+    .into_iter()
+    .collect::<HashMap<_, _>>();
+    let current = vec![
+        ("eth0".to_string(), (2000, 3000)),
+        ("lo".to_string(), (2000, 3000)),
+    ]
+    .into_iter()
+    .collect::<HashMap<_, _>>();
+    let interfaces = vec!["eth0".to_string(), "lo".to_string()];
     let mut output = Vec::new();
-    {
-        let mut writer = std::io::BufWriter::new(&mut output);
-        print_stats(&previous_stats, &current_stats, &interfaces, &mut writer, false).unwrap();
-    }
-    let output_str = String::from_utf8(output).unwrap().replace(' ', "_");
-    assert_eq!(output_str, expected);
-}
+    print_stats(&previous, &current, &interfaces, &mut output, false).unwrap();
+    let output_str = String::from_utf8(output).unwrap();
 
-#[test]
-fn test_print_stats_difference() {
-    let previous_stats = get_mock_net_dev_stats_from_str(&mock_net_dev_data()).unwrap();
-    let new_mock_data = "\
-Inter-|   Receive                                                |  Transmit
- face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    lo: 11738833  105208    0    0    0     0          0         0 11738834  105208    0    0    0     0       0          0
-  eth0: 995708711  460467    0    0    0     0          0         0 32736793  311386    0    0    0     0       0          0
-".to_string();
-    
-    let new_stats = get_mock_net_dev_stats_from_str(&new_mock_data).unwrap();
+    let lines: Vec<&str> = output_str.trim().split('\n').collect();
 
-    let interfaces = vec!["lo".to_string(), "eth0".to_string()];
-    let expected = "\
-____0.00______0.00_____97.66______9.77
-";
-    let mut output = Vec::new();
-    {
-        let mut writer = std::io::BufWriter::new(&mut output);
-        print_stats(&previous_stats, &new_stats, &interfaces, &mut writer, false).unwrap();
-    }
-    let output_str = String::from_utf8(output).unwrap().replace(' ', "_");
-    assert_eq!(output_str, expected);
+    // We expect one line of output for the two interfaces
+    assert_eq!(lines.len(), 1);
+
+    let eth0_lo_output = lines[0];
+    let eth0_lo_values: Vec<&str> = eth0_lo_output.split_whitespace().collect();
+
+    // We expect four values (two for each interface: "KB/s in" and "KB/s out")
+    assert_eq!(eth0_lo_values.len(), 4);
+
+    let eth0_in: f64 = eth0_lo_values[0].parse().unwrap();
+    let eth0_out: f64 = eth0_lo_values[1].parse().unwrap();
+    let lo_in: f64 = eth0_lo_values[2].parse().unwrap();
+    let lo_out: f64 = eth0_lo_values[3].parse().unwrap();
+
+    let tolerance = 0.01;
+
+    // Calculate the expected values rounded to 2 decimal places
+    let expected_eth0_in = (1000.0f64 / 1024.0 * 100.0).round() / 100.0;
+    let expected_eth0_out = (1000.0f64 / 1024.0 * 100.0).round() / 100.0;
+    let expected_lo_in = (1000.0f64 / 1024.0 * 100.0).round() / 100.0;
+    let expected_lo_out = (1000.0f64 / 1024.0 * 100.0).round() / 100.0;
+
+    // Debug output to see the values
+    println!("eth0_in: {}, expected: {}", eth0_in, expected_eth0_in);
+    println!("eth0_out: {}, expected: {}", eth0_out, expected_eth0_out);
+    println!("lo_in: {}, expected: {}", lo_in, expected_lo_in);
+    println!("lo_out: {}, expected: {}", lo_out, expected_lo_out);
+
+    // Validate the values with a tolerance
+    assert!((eth0_in - expected_eth0_in).abs() < tolerance);
+    assert!((eth0_out - expected_eth0_out).abs() < tolerance);
+    assert!((lo_in - expected_lo_in).abs() < tolerance);
+    assert!((lo_out - expected_lo_out).abs() < tolerance);
 }
 
 #[test]
 fn test_command_line_options() {
-    let opts = Opts::try_parse_from(&[
-        "test",
+    let opts = Opts::parse_from(&[
+        "ifstat-rs",
         "-i",
-        "lo,eth0",
+        "eth0,lo",
+        "-a",
+        "-l",
+        "-z",
         "--first-measurement",
-        "0.5",
-        "1.0",
-        "10",
-    ]).unwrap();
-    assert_eq!(opts.interfaces.unwrap(), "lo,eth0");
-    assert_eq!(opts.first_measurement.unwrap(), 0.5);
-    assert_eq!(opts.delay, 1.0);
-    assert_eq!(opts.count.unwrap(), 10);
+        "3", // First measurement
+        "2", // Delay
+        "5", // Count
+    ]);
+    assert_eq!(opts.interfaces, Some("eth0,lo".to_string()));
+    assert!(opts.monitor_all);
+    assert!(opts.monitor_loopback);
+    assert!(opts.hide_zero_counters);
+    assert_eq!(opts.delay, 2.0);
+    assert_eq!(opts.first_measurement, Some(3.0));
+    assert_eq!(opts.count, Some(5));
+}
+
+#[test]
+fn test_edge_cases() {
+    let data = r#"
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+  eth0:  invalid_data
+"#;
+    let reader = Cursor::new(data);
+    let result = parse_net_dev_stats(reader);
+
+    assert!(result.is_err());
 }

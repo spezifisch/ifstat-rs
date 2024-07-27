@@ -1,9 +1,22 @@
+#[macro_use]
+extern crate lazy_static;
+
+#[macro_use]
+mod utils;
+
 use clap::Parser;
 use regex::Regex;
 use std::collections::HashMap;
-use std::env;
 use std::io::{BufRead, BufReader}; // Add this import
-use lazy_static::lazy_static;
+use std::env;
+#[cfg(target_os = "windows")]
+use winapi::shared::ifmib::MIB_IFTABLE;
+#[cfg(target_os = "windows")]
+use winapi::um::iphlpapi::GetIfTable;
+#[cfg(target_os = "windows")]
+use std::mem;
+#[cfg(target_os = "macos")]
+use std::process::Command;
 
 #[cfg(target_os = "linux")]
 use std::fs::File;
@@ -136,19 +149,22 @@ pub fn parse_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64
     let mut stats = HashMap::new();
     let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+(?:\d+\s+){7}(\d+)\s+").unwrap();
 
-    for line in reader.lines().skip(2) {
+    for (_index, line) in reader.lines().enumerate().skip(2) {
         let line = line?;
+        test_debug!("Parsing line: {}", line);
         if let Some(caps) = re.captures(&line) {
-            let interface = caps[1].to_string();
+            let interface = caps[1].trim().to_string();
             let rx_bytes: u64 = caps[2].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid RX bytes"))?;
             let tx_bytes: u64 = caps[3].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid TX bytes"))?;
             stats.insert(interface, (rx_bytes, tx_bytes));
         } else {
+            test_debug!("Invalid line format: {}", line);
             return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid line format"));
         }
     }
     Ok(stats)
 }
+    
 
 pub fn print_headers(
     interfaces: &[String],
