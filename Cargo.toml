@@ -14,7 +14,8 @@ clap = { version = "3.0", features = ["derive"] }
 lazy_static = "1.4"
 
 [target.'cfg(windows)'.dependencies]
-ntapi = "0.4.1"
+ntapi = "=0.4.1"
+winapi = { version = "0.3", features = ["iphlpapi", "ifmib", "ntstatus"] }
 
 [build-dependencies]
 vergen = "6"
