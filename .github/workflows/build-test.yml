@@ -27,6 +27,9 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Update dependencies
+        run: cargo update
+
       - name: Set environment variables
         run: |
           echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
