@@ -71,6 +71,7 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
     }
     Ok(stats)
 }
+
 pub fn print_headers(interfaces: &[String], writer: &mut dyn std::io::Write) -> std::io::Result<()> {
     if interfaces.is_empty() {
         return Ok(());

@@ -9,8 +9,8 @@ fn mock_net_dev_data() -> String {
     "\
 Inter-|   Receive                                                |  Transmit
  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    lo: 123456789 98765    0    0    0     0          0         0 123456789 98765    0    0    0     0       0          0
-  eth0: 987654321 56789    0    0    0     0          0         0 987654321 56789    0    0    0     0       0          0
+    lo: 11738832  105207    0    0    0     0          0         0 11738832  105207    0    0    0     0       0          0
+  eth0: 995608711  460367    0    0    0     0          0         0 32726793  311286    0    0    0     0       0          0
 ".to_string()
 }
 
@@ -21,7 +21,7 @@ fn get_mock_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, io::Error> {
     let reader = BufReader::new(data.as_bytes());
     let mut stats = HashMap::new();
     // Regular expression to capture interface name, receive bytes, and transmit bytes
-    let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+.*\s+(\d+)\s+").unwrap();
+    let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+(?:\d+\s+){7}(\d+)\s+").unwrap();
 
     // Skip the first two lines (headers) and parse each line for stats
     for line in reader.lines().skip(2) {
@@ -39,8 +39,8 @@ fn get_mock_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, io::Error> {
 #[test]
 fn test_parse_net_dev_stats() {
     let stats = get_mock_net_dev_stats().unwrap();
-    assert_eq!(stats["lo"], (123456789, 123456789));
-    assert_eq!(stats["eth0"], (987654321, 987654321));
+    assert_eq!(stats["lo"], (11738832, 11738832));
+    assert_eq!(stats["eth0"], (995608711, 32726793));
 }
 
 #[test]
@@ -71,6 +71,43 @@ ____0.00______0.00______0.00______0.00
     {
         let mut writer = std::io::BufWriter::new(&mut output);
         print_stats(&previous_stats, &current_stats, &interfaces, &mut writer).unwrap();
+    }
+    let output_str = String::from_utf8(output).unwrap().replace(' ', "_");
+    assert_eq!(output_str, expected);
+}
+
+#[test]
+fn test_print_stats_difference() {
+    let previous_stats = get_mock_net_dev_stats().unwrap();
+    let new_mock_data = "\
+Inter-|   Receive                                                |  Transmit
+ face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+    lo: 11738833  105208    0    0    0     0          0         0 11738834  105208    0    0    0     0       0          0
+  eth0: 995708711  460467    0    0    0     0          0         0 32736793  311386    0    0    0     0       0          0
+".to_string();
+    
+    let reader = BufReader::new(new_mock_data.as_bytes());
+    let mut new_stats = HashMap::new();
+    let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+(?:\d+\s+){7}(\d+)\s+").unwrap();
+
+    for line in reader.lines().skip(2) {
+        let line = line.unwrap();
+        if let Some(caps) = re.captures(&line) {
+            let interface = caps[1].to_string();
+            let rx_bytes: u64 = caps[2].parse().unwrap_or(0);
+            let tx_bytes: u64 = caps[3].parse().unwrap_or(0);
+            new_stats.insert(interface, (rx_bytes, tx_bytes));
+        }
+    }
+
+    let interfaces = vec!["lo".to_string(), "eth0".to_string()];
+    let expected = "\
+____0.00______0.00_____97.66______9.77
+";
+    let mut output = Vec::new();
+    {
+        let mut writer = std::io::BufWriter::new(&mut output);
+        print_stats(&previous_stats, &new_stats, &interfaces, &mut writer).unwrap();
     }
     let output_str = String::from_utf8(output).unwrap().replace(' ', "_");
     assert_eq!(output_str, expected);
