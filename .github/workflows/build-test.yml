@@ -67,21 +67,28 @@ jobs:
       - name: Run tests on native architecture
         run: cargo test --release --target ${{ matrix.target }}
 
-      - name: Run program on Linux
+      - name: Run program on Linux x86_64
         run: |
           ./target/${{ matrix.target }}/release/ifstat-rs -V
           ./target/${{ matrix.target }}/release/ifstat-rs --version
           ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
         if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
 
-      - name: Run program on macOS
+      - name: Run program on macOS x86_64
         run: |
           ./target/${{ matrix.target }}/release/ifstat-rs -V
           ./target/${{ matrix.target }}/release/ifstat-rs --version
           ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
         if: matrix.os == 'macos-latest' && matrix.target == 'x86_64-apple-darwin'
 
-      - name: Run program on Windows
+      - name: Run program on macOS ARM64
+        run: |
+          ./target/${{ matrix.target }}/release/ifstat-rs -V
+          ./target/${{ matrix.target }}/release/ifstat-rs --version
+          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+        if: matrix.os == 'macos-latest' && matrix.target == 'aarch64-apple-darwin'
+
+      - name: Run program on Windows x86_64
         run: |
           target\${{ matrix.target }}\release\ifstat-rs.exe -V
           target\${{ matrix.target }}\release\ifstat-rs.exe --version
