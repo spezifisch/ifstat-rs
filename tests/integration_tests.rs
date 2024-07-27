@@ -9,8 +9,8 @@ fn mock_net_dev_data() -> String {
     "\
 Inter-|   Receive                                                |  Transmit
  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    lo: 123456789 98765    0    0    0     0          0         0 123456789 98765    0    0    0     0       0          0
-  eth0: 987654321 56789    0    0    0     0          0         0 987654321 56789    0    0    0     0       0          0
+    lo: 11653112  104532    0    0    0     0          0         0 11653112  104532    0    0    0     0       0          0
+  eth0: 975397653  443290    0    0    0     0          0         0 30723242  300853    0    0    0     0       0          0
 ".to_string()
 }
 
