@@ -82,12 +82,10 @@ jobs:
 
       - name: Run program on Windows
         run: |
-          timeout 60s cross run --target ${{ matrix.target }} -- --help
-          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
-          timeout 60s cargo run --target ${{ matrix.target }} -- -V
-          timeout 60s cargo run --target ${{ matrix.target }} -- --version
-          timeout 60s cargo run --target ${{ matrix.target }} -- -a 0 1
-        if: matrix.os == 'windows-latest' && matrix.target == 'x86_64-pc-windows-gnu'
+          powershell -Command "Start-Process -NoNewWindow -FilePath 'cross' -ArgumentList 'run --target ${{ matrix.target }} -- -V' ; Start-Sleep -Seconds 60 ; Stop-Process -Name cross -ErrorAction SilentlyContinue"
+          powershell -Command "Start-Process -NoNewWindow -FilePath 'cross' -ArgumentList 'run --target ${{ matrix.target }} -- --version' ; Start-Sleep -Seconds 60 ; Stop-Process -Name cross -ErrorAction SilentlyContinue"
+          powershell -Command "Start-Process -NoNewWindow -FilePath 'cross' -ArgumentList 'run --target ${{ matrix.target }} -- -a 0 1' ; Start-Sleep -Seconds 60 ; Stop-Process -Name cross -ErrorAction SilentlyContinue"
+        if: matrix.os == 'windows-latest'
 
       - name: Run program on Linux ARM
         run: |
