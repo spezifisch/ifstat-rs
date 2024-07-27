@@ -2,6 +2,8 @@ use clap::Parser;
 use ifstat_rs::{parse_net_dev_stats, print_headers, print_stats, Opts};
 use std::collections::HashMap;
 use std::io::Cursor;
+use assert_cmd::Command;
+use predicates::prelude::*;
 
 #[test]
 fn test_parse_net_dev_stats() {
@@ -107,6 +109,14 @@ fn test_command_line_options() {
     assert_eq!(opts.delay, 2.0);
     assert_eq!(opts.first_measurement, Some(3.0));
     assert_eq!(opts.count, Some(5));
+}
+
+#[test]
+fn test_version_output() {
+    let mut cmd = Command::cargo_bin("ifstat-rs").unwrap();
+    cmd.arg("-V")
+       .assert()
+       .stdout(predicate::str::is_match(r"ifstat-rs \d+\.\d+\.\d+\n").unwrap());
 }
 
 #[test]

@@ -21,3 +21,7 @@ ntapi = "0.4.1"
 
 [build-dependencies]
 vergen = "6"
+
+[dev-dependencies]
+assert_cmd = "2.0.4"
+predicates = "2.1.5"

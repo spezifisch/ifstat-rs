@@ -28,11 +28,12 @@ use winapi::um::iphlpapi::GetIfTable;
 use std::mem;
 
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
 const LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
 #[derive(Parser)]
-#[clap(version = "1.0", author = AUTHOR, long_version = LONG_VERSION.as_str())]
+#[clap(version = VERSION, author = AUTHOR, long_version = LONG_VERSION.as_str())]
 pub struct Opts {
     /// Interfaces to monitor, separated by commas (e.g., "eth0,lo")
     #[clap(short, long)]
