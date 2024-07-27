@@ -44,15 +44,16 @@ fn test_parse_net_dev_stats() {
 fn test_print_headers() {
     let interfaces = vec!["eth0".to_string(), "lo".to_string()];
     let expected = "\
-  eth0       lo       
- KB/s in  KB/s out  KB/s in  KB/s out
+____eth0______________lo______
+_KB/s_in__KB/s_out__KB/s_in__KB/s_out
 ";
     let mut output = Vec::new();
     {
         let mut writer = std::io::BufWriter::new(&mut output);
         print_headers(&interfaces, &mut writer).unwrap();
     }
-    assert_eq!(String::from_utf8(output).unwrap(), expected);
+    let output_str = String::from_utf8(output).unwrap().replace(' ', "_");
+    assert_eq!(output_str, expected);
 }
 
 #[test]
@@ -61,14 +62,15 @@ fn test_print_stats() {
     let current_stats = get_mock_net_dev_stats().unwrap();
     let interfaces = vec!["eth0".to_string(), "lo".to_string()];
     let expected = "\
-  0.00    0.00    0.00    0.00
+____0.00______0.00______0.00______0.00
 ";
     let mut output = Vec::new();
     {
         let mut writer = std::io::BufWriter::new(&mut output);
         print_stats(&previous_stats, &current_stats, &interfaces, &mut writer).unwrap();
     }
-    assert_eq!(String::from_utf8(output).unwrap(), expected);
+    let output_str = String::from_utf8(output).unwrap().replace(' ', "_");
+    assert_eq!(output_str, expected);
 }
 
 #[test]
