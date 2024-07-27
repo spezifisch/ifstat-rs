@@ -78,12 +78,12 @@ pub fn print_headers(interfaces: &[String], writer: &mut dyn std::io::Write) -> 
     }
 
     for interface in interfaces {
-        write!(writer, "{:>7} ", interface)?;
+        write!(writer, "{:>7}", interface)?;
     }
     writeln!(writer)?;
 
     for _ in interfaces {
-        write!(writer, "{:>7} {:>7} ", "KB/s in", "KB/s out")?;
+        write!(writer, "{:>-8}  {:>-8}", "KB/s in", "KB/s out")?;
     }
     writeln!(writer)?;
 
@@ -102,7 +102,7 @@ pub fn print_stats(
         {
             let rx_kbps = (cur_rx.saturating_sub(prev_rx)) as f64 / 1024.0;
             let tx_kbps = (cur_tx.saturating_sub(prev_tx)) as f64 / 1024.0;
-            write!(writer, "{:>7.2} {:>7.2} ", rx_kbps, tx_kbps)?;
+            write!(writer, "{:>8.2}  {:>8.2}", rx_kbps, tx_kbps)?;
         }
     }
     writeln!(writer)?;
