@@ -16,18 +16,21 @@ Inter-|   Receive                                                |  Transmit
 
 // Mock get_net_dev_stats function
 fn get_mock_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, io::Error> {
+    // Mock data representing /proc/net/dev content
     let data = mock_net_dev_data();
     let reader = BufReader::new(data.as_bytes());
     let mut stats = HashMap::new();
+    // Regular expression to capture interface name, receive bytes, and transmit bytes
     let re = Regex::new(r"^\s*([^:]+):\s*(\d+)\s+.*\s+(\d+)\s+").unwrap();
 
+    // Skip the first two lines (headers) and parse each line for stats
     for line in reader.lines().skip(2) {
         let line = line?;
         if let Some(caps) = re.captures(&line) {
-            let interface = caps[1].to_string();
-            let rx_bytes: u64 = caps[2].parse().unwrap_or(0);
-            let tx_bytes: u64 = caps[3].parse().unwrap_or(0);
-            stats.insert(interface, (rx_bytes, tx_bytes));
+            let interface = caps[1].to_string(); // Capture interface name
+            let rx_bytes: u64 = caps[2].parse().unwrap_or(0); // Capture receive bytes
+            let tx_bytes: u64 = caps[3].parse().unwrap_or(0); // Capture transmit bytes
+            stats.insert(interface, (rx_bytes, tx_bytes)); // Insert into stats map
         }
     }
     Ok(stats)
