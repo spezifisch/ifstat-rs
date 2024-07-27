@@ -33,3 +33,9 @@ jobs:
 
       - name: Run tests
         run: cargo test --release
+
+      - name: Run program
+        run: |
+          cargo run -- -V
+          cargo run -- --version
+          cargo run -- -a 0 1
