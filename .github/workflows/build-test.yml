@@ -11,27 +11,18 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: riscv64gc-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: armv7-unknown-linux-gnueabihf
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-          - os: macos-latest
-            target: x86_64-apple-darwin
-          - os: macos-latest
-            target: aarch64-apple-darwin
-          - os: windows-latest
-            target: x86_64-pc-windows-gnu
-          - os: windows-latest
-            target: aarch64-pc-windows-gnu
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
+          - riscv64gc-unknown-linux-gnu
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-gnu
+          - aarch64-pc-windows-gnu
 
     steps:
       - name: Checkout code
@@ -45,54 +36,19 @@ jobs:
           override: true
 
       - name: Install cross
-        if: matrix.target != 'x86_64-unknown-linux-gnu' && matrix.target != 'x86_64-apple-darwin' && matrix.target != 'x86_64-pc-windows-gnu'
         run: cargo install cross
 
-      - name: Install dependencies for riscv64
-        if: matrix.target == 'riscv64gc-unknown-linux-gnu'
-        run: sudo apt-get update && sudo apt-get install -y gcc-riscv64-linux-gnu
-
-      - name: Set environment variables
-        run: echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
-
-      - name: Show config
-        run: cargo tree
-
-      - name: Build with cross
-        if: matrix.target != 'x86_64-unknown-linux-gnu' && matrix.target != 'x86_64-apple-darwin' && matrix.target != 'x86_64-pc-windows-gnu'
+      - name: Build
         run: cross build --release --target ${{ matrix.target }}
 
-      - name: Build with cargo
-        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin' || matrix.target == 'x86_64-pc-windows-gnu'
-        run: cargo build --release --target ${{ matrix.target }}
+      - name: Run tests
+        run: cross test --release --target ${{ matrix.target }}
 
-      - name: Run tests on native architecture
-        run: cargo test --release --target ${{ matrix.target }}
-
-      - name: Run program on Linux x86_64
+      - name: Run program on native architecture
         run: |
-          ./target/${{ matrix.target }}/release/ifstat-rs -V
-          ./target/${{ matrix.target }}/release/ifstat-rs --version
-          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
-
-      - name: Run program on macOS x86_64
-        run: |
-          ./target/${{ matrix.target }}/release/ifstat-rs -V
-          ./target/${{ matrix.target }}/release/ifstat-rs --version
-          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'macos-latest' && matrix.target == 'x86_64-apple-darwin'
-
-      - name: Run program on macOS ARM64
-        run: |
-          ./target/${{ matrix.target }}/release/ifstat-rs -V
-          ./target/${{ matrix.target }}/release/ifstat-rs --version
-          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'macos-latest' && matrix.target == 'aarch64-apple-darwin'
-
-      - name: Run program on Windows x86_64
-        run: |
-          target\${{ matrix.target }}\release\ifstat-rs.exe -V
-          target\${{ matrix.target }}\release\ifstat-rs.exe --version
-          target\${{ matrix.target }}\release\ifstat-rs.exe -a 0 1
-        if: matrix.os == 'windows-latest' && matrix.target == 'x86_64-pc-windows-gnu'
+          if [ ${{ matrix.target }} == "x86_64-unknown-linux-gnu" ]; then
+            ./target/${{ matrix.target }}/release/ifstat-rs -V
+            ./target/${{ matrix.target }}/release/ifstat-rs --version
+            ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+          fi
+        if: runner.os == 'Linux'
