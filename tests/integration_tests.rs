@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::io::{self, BufRead, BufReader};
 
 use regex::Regex;
-
-use ifstat_rs::{get_net_dev_stats, print_headers, print_stats, Opts};
+use clap::Parser;
+use ifstat_rs::{print_headers, print_stats, Opts};
 
 fn mock_net_dev_data() -> String {
     "\
@@ -44,12 +44,12 @@ fn test_parse_net_dev_stats() {
 fn test_print_headers() {
     let interfaces = vec!["eth0".to_string(), "lo".to_string()];
     let expected = "\
-        eth0                 lo
+           eth0                 lo
  KB/s in  KB/s out   KB/s in  KB/s out
 ";
     let mut output = Vec::new();
     {
-        let mut writer = &mut output;
+        let mut writer = std::io::BufWriter::new(&mut output);
         print_headers(&interfaces, &mut writer).unwrap();
     }
     assert_eq!(String::from_utf8(output).unwrap(), expected);
@@ -65,7 +65,7 @@ fn test_print_stats() {
 ";
     let mut output = Vec::new();
     {
-        let mut writer = &mut output;
+        let mut writer = std::io::BufWriter::new(&mut output);
         print_stats(&previous_stats, &current_stats, &interfaces, &mut writer).unwrap();
     }
     assert_eq!(String::from_utf8(output).unwrap(), expected);
@@ -73,7 +73,7 @@ fn test_print_stats() {
 
 #[test]
 fn test_command_line_options() {
-    let opts = Opts::parse_from(&[
+    let opts = Opts::try_parse_from(&[
         "test",
         "-i",
         "eth0,lo",
@@ -83,7 +83,7 @@ fn test_command_line_options() {
         "1.0",
         "--count",
         "10",
-    ]);
+    ]).unwrap();
     assert_eq!(opts.interfaces.unwrap(), "eth0,lo");
     assert_eq!(opts.first_measurement.unwrap(), 0.5);
     assert_eq!(opts.delay, 1.0);
