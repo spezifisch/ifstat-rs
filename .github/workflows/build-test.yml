@@ -63,42 +63,42 @@ jobs:
 
       - name: Run program on Linux
         run: |
-          cross run --target ${{ matrix.target }} -- -V
-          cross run --target ${{ matrix.target }} -- --version
-          cross run --target ${{ matrix.target }} -- -a 0 1
+          timeout 60s cross run --target ${{ matrix.target }} -- -V
+          timeout 60s cross run --target ${{ matrix.target }} -- --version
+          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
         if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
 
       - name: Run program on macOS
         run: |
-          cross run --target ${{ matrix.target }} -- -V
-          cross run --target ${{ matrix.target }} -- --version
-          cross run --target ${{ matrix.target }} -- -a 0 1
+          timeout 60s cross run --target ${{ matrix.target }} -- -V
+          timeout 60s cross run --target ${{ matrix.target }} -- --version
+          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
         if: matrix.os == 'macos-latest' && matrix.target == 'aarch64-apple-darwin'
 
       - name: Run program on Windows
         run: |
-          cross run --target ${{ matrix.target }} -- -V
-          cross run --target ${{ matrix.target }} -- --version
-          cross run --target ${{ matrix.target }} -- -a 0 1
+          timeout 60s cross run --target ${{ matrix.target }} -- -V
+          timeout 60s cross run --target ${{ matrix.target }} -- --version
+          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
         if: matrix.os == 'windows-latest' && matrix.target == 'x86_64-pc-windows-gnu'
 
       - name: Run program on Linux ARM
         run: |
-          cross run --target ${{ matrix.target }} -- -V
-          cross run --target ${{ matrix.target }} -- --version
-          cross run --target ${{ matrix.target }} -- -a 0 1
+          timeout 60s cross run --target ${{ matrix.target }} -- -V
+          timeout 60s cross run --target ${{ matrix.target }} -- --version
+          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
         if: matrix.os == 'ubuntu-latest' && matrix.target == 'aarch64-unknown-linux-gnu'
 
       - name: Run program on Linux RISCV
         run: |
-          cross run --target ${{ matrix.target }} -- -V
-          cross run --target ${{ matrix.target }} -- --version
-          cross run --target ${{ matrix.target }} -- -a 0 1
+          timeout 60s cross run --target ${{ matrix.target }} -- -V
+          timeout 60s cross run --target ${{ matrix.target }} -- --version
+          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
         if: matrix.os == 'ubuntu-latest' && matrix.target == 'riscv64gc-unknown-linux-gnu'
 
       - name: Run program on Linux ARMv7
         run: |
-          cross run --target ${{ matrix.target }} -- -V
-          cross run --target ${{ matrix.target }} -- --version
-          cross run --target ${{ matrix.target }} -- -a 0 1
+          timeout 60s cross run --target ${{ matrix.target }} -- -V
+          timeout 60s cross run --target ${{ matrix.target }} -- --version
+          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
         if: matrix.os == 'ubuntu-latest' && matrix.target == 'armv7-unknown-linux-gnueabihf'
