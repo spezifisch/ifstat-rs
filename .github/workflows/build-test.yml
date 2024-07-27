@@ -1,4 +1,4 @@
-name: CI
+name: Build and test
 
 on:
   push:
@@ -23,6 +23,9 @@ jobs:
           toolchain: stable
           profile: minimal
           override: true
+
+      - name: Set environment variables
+        run: echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
 
       - name: Build
         run: cargo build --release

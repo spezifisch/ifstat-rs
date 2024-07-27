@@ -5,6 +5,7 @@ authors = ["spezifisch <spezifisch+JOKING@gmail.com>"]
 edition = "2018"
 description = "ifstat-rs: A tool to report network interface statistics."
 repository = "https://github.com/spezifisch/ifstat-rs"
+license = "MIT"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }

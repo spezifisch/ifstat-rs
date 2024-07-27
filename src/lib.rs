@@ -1,12 +1,14 @@
 use clap::Parser;
 use regex::Regex;
 use std::collections::HashMap;
+use std::env;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use lazy_static::lazy_static;
 
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
+const LICENSE: &str = env!("CARGO_PKG_LICENSE");
 
 #[derive(Parser)]
 #[clap(version = "1.0", author = AUTHOR, long_version = LONG_VERSION.as_str())]
@@ -44,16 +46,19 @@ lazy_static! {
         let commit_hash = option_env!("VERGEN_GIT_SHA").unwrap_or("unknown");
         let build_timestamp = option_env!("VERGEN_BUILD_TIMESTAMP").unwrap_or("unknown");
         let rust_version = option_env!("VERGEN_RUSTC_SEMVER").unwrap_or("unknown");
+        let target = env::var("TARGET").unwrap_or_else(|_| "unknown".to_string());
 
         format!(
-            "ifstat-rs: A tool to report network interface statistics.\n\n\
-            Built with Rust.\n\n\
+            "A tool to report network interface statistics.\n\n\
+            Author: {}\n\
+            License: {}\n\
             Build info:\n\
             Commit: {}\n\
             Build Timestamp: {}\n\
             Rust Version: {}\n\
+            Compilation Target: {}\n\
             Repo: {}",
-            commit_hash, build_timestamp, rust_version, REPO_URL
+            AUTHOR, LICENSE, commit_hash, build_timestamp, rust_version, target, REPO_URL
         )
     };
 }
