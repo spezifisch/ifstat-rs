@@ -9,8 +9,8 @@ fn mock_net_dev_data() -> String {
     "\
 Inter-|   Receive                                                |  Transmit
  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-    lo: 11653112  104532    0    0    0     0          0         0 11653112  104532    0    0    0     0       0          0
-  eth0: 975397653  443290    0    0    0     0          0         0 30723242  300853    0    0    0     0       0          0
+    lo: 123456789 98765    0    0    0     0          0         0 123456789 98765    0    0    0     0       0          0
+  eth0: 987654321 56789    0    0    0     0          0         0 987654321 56789    0    0    0     0       0          0
 ".to_string()
 }
 
@@ -42,10 +42,10 @@ fn test_parse_net_dev_stats() {
 
 #[test]
 fn test_print_headers() {
-    let interfaces = vec!["eth0".to_string(), "lo".to_string()];
+    let interfaces = vec!["lo".to_string(), "eth0".to_string()];
     let expected = "\
-_______eth0________________lo_______
-_KB/s_in__KB/s_out__KB/s_in__KB/s_out
+________lo_________________eth0_______
+_KB/s_in__KB/s_out___KB/s_in__KB/s_out
 ";
     let mut output = Vec::new();
     {
@@ -60,7 +60,7 @@ _KB/s_in__KB/s_out__KB/s_in__KB/s_out
 fn test_print_stats() {
     let previous_stats = get_mock_net_dev_stats().unwrap();
     let current_stats = get_mock_net_dev_stats().unwrap();
-    let interfaces = vec!["eth0".to_string(), "lo".to_string()];
+    let interfaces = vec!["lo".to_string(), "eth0".to_string()];
     let expected = "\
 ____0.00______0.00______0.00______0.00
 ";
@@ -78,13 +78,13 @@ fn test_command_line_options() {
     let opts = Opts::try_parse_from(&[
         "test",
         "-i",
-        "eth0,lo",
+        "lo,eth0",
         "--first-measurement",
         "0.5",
         "--delay=1.0",
         "--count=10",
     ]).unwrap();
-    assert_eq!(opts.interfaces.unwrap(), "eth0,lo");
+    assert_eq!(opts.interfaces.unwrap(), "lo,eth0");
     assert_eq!(opts.first_measurement.unwrap(), 0.5);
     assert_eq!(opts.delay, 1.0);
     assert_eq!(opts.count.unwrap(), 10);
