@@ -83,9 +83,11 @@ pub fn get_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, 
         let line = line?;
         if let Some(caps) = re.captures(&line) {
             let interface = caps[1].to_string();
-            let rx_bytes: u64 = caps[2].parse().unwrap_or(0);
-            let tx_bytes: u64 = caps[3].parse().unwrap_or(0);
+            let rx_bytes: u64 = caps[2].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid RX bytes"))?;
+            let tx_bytes: u64 = caps[3].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid TX bytes"))?;
             stats.insert(interface, (rx_bytes, tx_bytes));
+        } else {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid line format"));
         }
     }
     Ok(stats)

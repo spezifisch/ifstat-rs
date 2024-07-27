@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufReader};
 use clap::Parser;
 use ifstat_rs::{print_headers, print_stats, get_net_dev_stats, Opts};
 
