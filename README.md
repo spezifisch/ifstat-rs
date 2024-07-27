@@ -1,6 +1,6 @@
 # ifstat-rs
 
-`ifstat-rs` is a simple Rust tool to parse and display network I/O statistics from `/proc/net/dev` once a second. 
+`ifstat-rs` is a simple Rust tool to parse and display network I/O statistics from `/proc/net/dev` once a second.
 
 *"This project has been generated with the assistance of ChatGPT. Please be aware that ChatGPT can make mistakes. It is important to review and verify all information provided by the tool." is what it says. Don't use this tool.*
 
@@ -10,6 +10,7 @@
 - Displays RX and TX bytes for each interface every second
 - Supports monitoring specific interfaces, all interfaces, or loopback interfaces
 - Allows setting delay between updates and limiting the number of updates
+- Displays detailed build information including commit hash and build timestamp
 
 ## Installation
 
@@ -32,7 +33,8 @@ cargo run --release
 - `-a`: Monitor all interfaces
 - `-l`: Include loopback interfaces
 - `-i <interfaces>`: Specify interfaces to monitor, separated by commas (e.g., `-i eth0,lo`)
-- `--delay <seconds>`: Set delay between updates (default is 1 second)
+- `--first-measurement <seconds>`: Set delay before the first measurement (default is same as --delay)
+- `<delay>`: Delay between updates in seconds (default is 1 second)
 - `<count>`: Number of updates before stopping (default is unlimited)
 
 ### Examples
@@ -40,25 +42,25 @@ cargo run --release
 Monitor specific interfaces:
 
 ```sh
-cargo run --release -- -i eth0,lo
+cargo run --release -- -i eth0,lo 1 10
 ```
 
 Monitor all interfaces:
 
 ```sh
-cargo run --release -- -a
+cargo run --release -- -a 1 10
 ```
 
 Include loopback interfaces:
 
 ```sh
-cargo run --release -- -l
+cargo run --release -- -l 1 10
 ```
 
 Specify delay and count:
 
 ```sh
-cargo run --release -- -a --delay 0.5 10
+cargo run --release -- -a --first-measurement 0.5 1 10
 ```
 
 ## Contributing

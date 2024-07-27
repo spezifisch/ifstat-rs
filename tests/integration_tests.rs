@@ -121,8 +121,8 @@ fn test_command_line_options() {
         "lo,eth0",
         "--first-measurement",
         "0.5",
-        "--delay=1.0",
-        "--count=10",
+        "1.0",
+        "10",
     ]).unwrap();
     assert_eq!(opts.interfaces.unwrap(), "lo,eth0");
     assert_eq!(opts.first_measurement.unwrap(), 0.5);
