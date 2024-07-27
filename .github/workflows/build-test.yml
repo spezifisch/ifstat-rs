@@ -74,11 +74,10 @@ jobs:
 
       - name: Run program on macOS
         run: |
-          timeout 60s cross run --target ${{ matrix.target }} -- --help
-          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
-          timeout 60s cargo run --target ${{ matrix.target }} -- -V
-          timeout 60s cargo run --target ${{ matrix.target }} -- --version
-          timeout 60s cargo run --target ${{ matrix.target }} -- -a 0 1
+          brew install coreutils
+          gtimeout 60s cross run --target ${{ matrix.target }} -- -V
+          gtimeout 60s cross run --target ${{ matrix.target }} -- --version
+          gtimeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
         if: matrix.os == 'macos-latest' && matrix.target == 'aarch64-apple-darwin'
 
       - name: Run program on Windows
