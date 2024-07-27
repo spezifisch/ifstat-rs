@@ -11,18 +11,25 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - aarch64-unknown-linux-gnu
-          - armv7-unknown-linux-gnueabihf
-          - riscv64gc-unknown-linux-gnu
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
-          - x86_64-pc-windows-gnu
-          - aarch64-pc-windows-gnu
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: riscv64gc-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-gnu
+          - os: windows-latest
+            target: aarch64-pc-windows-gnu
 
     steps:
       - name: Checkout code
@@ -35,20 +42,42 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install cross
-        run: cargo install cross
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
 
-      - name: Build
+      - name: Show config
+        run: cargo tree
+
+      - name: Build with Cross
         run: cross build --release --target ${{ matrix.target }}
 
-      - name: Run tests
+      - name: Test with Cross
         run: cross test --release --target ${{ matrix.target }}
 
-      - name: Run program on native architecture
+      - name: Run program on Linux
+        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          if [ ${{ matrix.target }} == "x86_64-unknown-linux-gnu" ]; then
-            ./target/${{ matrix.target }}/release/ifstat-rs -V
-            ./target/${{ matrix.target }}/release/ifstat-rs --version
-            ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-          fi
-        if: runner.os == 'Linux'
+          ./target/${{ matrix.target }}/release/ifstat-rs -V
+          ./target/${{ matrix.target }}/release/ifstat-rs --version
+          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+
+      - name: Run program on macOS
+        if: runner.os == 'macOS' && matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-apple-darwin'
+        run: |
+          ./target/${{ matrix.target }}/release/ifstat-rs -V
+          ./target/${{ matrix.target }}/release/ifstat-rs --version
+          ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+
+      - name: Run program on Windows
+        if: runner.os == 'Windows' && matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          target\${{ matrix.target }}\release\ifstat-rs.exe -V
+          target\${{ matrix.target }}\release\ifstat-rs.exe --version
+          target\${{ matrix.target }}\release\ifstat-rs.exe -a 0 1
+
+      - name: Run program on Windows (ARM)
+        if: runner.os == 'Windows' && matrix.target == 'aarch64-pc-windows-gnu'
+        run: |
+          target\${{ matrix.target }}\release\ifstat-rs.exe -V
+          target\${{ matrix.target }}\release\ifstat-rs.exe --version
+          target\${{ matrix.target }}\release\ifstat-rs.exe -a 0 1
