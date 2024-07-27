@@ -44,7 +44,7 @@ fn test_parse_net_dev_stats() {
 fn test_print_headers() {
     let interfaces = vec!["eth0".to_string(), "lo".to_string()];
     let expected = "\
-____eth0______________lo______
+_______eth0________________lo_______
 _KB/s_in__KB/s_out__KB/s_in__KB/s_out
 ";
     let mut output = Vec::new();
