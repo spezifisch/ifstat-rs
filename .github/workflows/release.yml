@@ -25,7 +25,8 @@ jobs:
           override: true
 
       - name: Set environment variables
-        run: echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
+        run: |
+          echo "TARGET=$(rustc -vV | grep 'host: ' | cut -d' ' -f2)" >> $GITHUB_ENV
 
       - name: Build
         run: cargo build --release
