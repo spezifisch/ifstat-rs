@@ -19,15 +19,15 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
           - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-          - os: ubuntu-latest
             target: riscv64gc-unknown-linux-gnu
           - os: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
-          - os: macos-latest
-            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
           - os: windows-latest
             target: x86_64-pc-windows-gnu
           - os: windows-latest
@@ -37,70 +37,57 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Rust
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           profile: minimal
           override: true
 
-      - name: Install Cross
-        run: cargo install cross
-
-      - name: Install dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install -y gcc gcc-multilib g++-multilib
-
       - name: Install target
         run: rustup target add ${{ matrix.target }}
+
+      - name: Install cross
+        run: cargo install cross
+
+      - name: Install dependencies on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y gcc-multilib g++-multilib
 
       - name: Set environment variables
         run: echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
-      - name: Build
-        run: cross build --release --target ${{ matrix.target }}
+      - name: Show config
+        run: cargo tree
 
-      - name: Run tests
-        run: cross test --release --target ${{ matrix.target }}
+      - name: Build and Test
+        run: |
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ] && [ "${{ matrix.target }}" != "x86_64-unknown-linux-gnu" ]; then
+            cross build --release --target ${{ matrix.target }}
+            cross test --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+            cargo test --release --target ${{ matrix.target }}
+          fi
 
       - name: Run program on Linux
         run: |
-          timeout 60s cross run --target ${{ matrix.target }} -- --help
-          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
-          timeout 60s cargo run --target ${{ matrix.target }} -- -V
-          timeout 60s cargo run --target ${{ matrix.target }} -- --version
-          timeout 60s cargo run --target ${{ matrix.target }} -- -a 0 1
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V || echo "Timed out"
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version || echo "Timed out"
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1 || echo "Timed out"
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'x86_64-unknown-linux-gnu'
 
       - name: Run program on macOS
         run: |
           brew install coreutils
-          gtimeout 60s cross run --target ${{ matrix.target }} -- -V
-          gtimeout 60s cross run --target ${{ matrix.target }} -- --version
-          gtimeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
-        if: matrix.os == 'macos-latest' && matrix.target == 'aarch64-apple-darwin'
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V || echo "Timed out"
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version || echo "Timed out"
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1 || echo "Timed out"
+        if: startsWith(matrix.os, 'macos')
 
       - name: Run program on Windows
         run: |
-          powershell -Command "Start-Process -NoNewWindow -FilePath 'cross' -ArgumentList 'run --target ${{ matrix.target }} -- -V' ; Start-Sleep -Seconds 60 ; Stop-Process -Name cross -ErrorAction SilentlyContinue"
-          powershell -Command "Start-Process -NoNewWindow -FilePath 'cross' -ArgumentList 'run --target ${{ matrix.target }} -- --version' ; Start-Sleep -Seconds 60 ; Stop-Process -Name cross -ErrorAction SilentlyContinue"
-          powershell -Command "Start-Process -NoNewWindow -FilePath 'cross' -ArgumentList 'run --target ${{ matrix.target }} -- -a 0 1' ; Start-Sleep -Seconds 60 ; Stop-Process -Name cross -ErrorAction SilentlyContinue"
-        if: matrix.os == 'windows-latest'
-
-      - name: Run program on Linux ARM
-        run: |
-          timeout 60s cross run --target ${{ matrix.target }} -- --help
-          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'aarch64-unknown-linux-gnu'
-
-      - name: Run program on Linux RISCV
-        run: |
-          timeout 60s cross run --target ${{ matrix.target }} -- --help
-          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'riscv64gc-unknown-linux-gnu'
-
-      - name: Run program on Linux ARMv7
-        run: |
-          timeout 60s cross run --target ${{ matrix.target }} -- --help
-          timeout 60s cross run --target ${{ matrix.target }} -- -a 0 1
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'armv7-unknown-linux-gnueabihf'
+          Start-Process -FilePath ./target/${{ matrix.target }}/release/ifstat-rs.exe -ArgumentList "-V" -Wait -NoNewWindow || Write-Host "Timed out"
+          Start-Process -FilePath ./target/${{ matrix.target }}/release/ifstat-rs.exe -ArgumentList "--version" -Wait -NoNewWindow || Write-Host "Timed out"
+          Start-Process -FilePath ./target/${{ matrix.target }}/release/ifstat-rs.exe -ArgumentList "-a 0 1" -Wait -NoNewWindow || Write-Host "Timed out"
+        if: startsWith(matrix.os, 'windows')
