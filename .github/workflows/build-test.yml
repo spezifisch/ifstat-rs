@@ -72,22 +72,23 @@ jobs:
 
       - name: Run program on Linux
         run: |
-          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V || echo "Timed out"
-          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version || echo "Timed out"
-          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1 || echo "Timed out"
-        if: startsWith(matrix.os, 'ubuntu') && matrix.target == 'x86_64-unknown-linux-gnu'
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Run program on macOS
         run: |
           brew install coreutils
-          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V || echo "Timed out"
-          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version || echo "Timed out"
-          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1 || echo "Timed out"
-        if: startsWith(matrix.os, 'macos')
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+        if: matrix.os == 'macos-latest'
 
       - name: Run program on Windows
         run: |
-          Start-Process -FilePath ./target/${{ matrix.target }}/release/ifstat-rs.exe -ArgumentList "-V" -Wait -NoNewWindow || Write-Host "Timed out"
-          Start-Process -FilePath ./target/${{ matrix.target }}/release/ifstat-rs.exe -ArgumentList "--version" -Wait -NoNewWindow || Write-Host "Timed out"
-          Start-Process -FilePath ./target/${{ matrix.target }}/release/ifstat-rs.exe -ArgumentList "-a 0 1" -Wait -NoNewWindow || Write-Host "Timed out"
-        if: startsWith(matrix.os, 'windows')
+          target\${{ matrix.target }}\release\ifstat-rs.exe -V
+          target\${{ matrix.target }}\release\ifstat-rs.exe --version
+          target\${{ matrix.target }}\release\ifstat-rs.exe -a 0 1
+        timeout-minutes: 1
+        if: matrix.os == 'windows-latest'
