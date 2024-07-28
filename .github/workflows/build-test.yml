@@ -75,7 +75,7 @@ jobs:
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
 
       - name: Run program on macOS
         run: |
@@ -83,12 +83,15 @@ jobs:
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-latest' && matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-apple-darwin'
 
       - name: Run program on Windows
         run: |
-          target\${{ matrix.target }}\release\ifstat-rs.exe -V
-          target\${{ matrix.target }}\release\ifstat-rs.exe --version
-          target\${{ matrix.target }}\release\ifstat-rs.exe -a 0 1
-        timeout-minutes: 1
-        if: matrix.os == 'windows-latest'
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait
+          ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait
+          ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait
+          ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 1
+        if: matrix.os == 'windows-latest' && matrix.target == 'x86_64-pc-windows-gnu'
+    
