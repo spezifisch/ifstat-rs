@@ -26,6 +26,8 @@ jobs:
             target: armv7-unknown-linux-gnueabihf
           - os: ubuntu-latest
             target: i686-unknown-linux-gnu
+          - os: archlinux
+            target: x86_64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
           - os: macos-latest
@@ -87,12 +89,12 @@ jobs:
       - name: Build and Test on Windows
         if: runner.os == 'Windows'
         run: |
-          if ($env:matrix_os -eq "windows-latest" -and $env:matrix_target -ne "x86_64-pc-windows-gnu") {
-            cross build --release --target $env:matrix_target
-            cross test --release --target $env:matrix_target
+          if ($env:TARGET -ne "x86_64-pc-windows-gnu") {
+            cross build --release --target $env:TARGET
+            cross test --release --target $env:TARGET
           } else {
-            cargo build --release --target $env:matrix_target
-            cargo test --release --target $env:matrix_target
+            cargo build --release --target $env:TARGET
+            cargo test --release --target $env:TARGET
           }
 
       - name: Run program on Linux
@@ -112,10 +114,10 @@ jobs:
 
       - name: Run program on Windows
         run: |
-          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
-          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
-          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 1
         if: matrix.os == 'windows-latest' && (matrix.target == 'x86_64-pc-windows-gnu' || matrix.target == 'aarch64-pc-windows-gnu')
