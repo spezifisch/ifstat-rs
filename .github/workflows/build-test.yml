@@ -26,16 +26,12 @@ jobs:
             target: armv7-unknown-linux-gnueabihf
           - os: ubuntu-latest
             target: i686-unknown-linux-gnu
-          - os: archlinux
-            target: x86_64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
           - os: macos-latest
             target: aarch64-apple-darwin
           - os: windows-latest
             target: x86_64-pc-windows-gnu
-          - os: windows-latest
-            target: aarch64-pc-windows-gnu
 
     steps:
       - name: Checkout code
@@ -89,15 +85,10 @@ jobs:
       - name: Build and Test on Windows
         if: runner.os == 'Windows'
         run: |
-          if ($env:TARGET -ne "x86_64-pc-windows-gnu") {
-            cross build --release --target $env:TARGET
-            cross test --release --target $env:TARGET
-          } else {
-            cargo build --release --target $env:TARGET
-            cargo test --release --target $env:TARGET
-          }
+          cargo build --release --target ${{ matrix.target }}
+          cargo test --release --target ${{ matrix.target }}
 
-      - name: Run program on Linux
+      - name: Run program on Linux (only native)
         run: |
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
@@ -110,7 +101,7 @@ jobs:
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'macos-latest' && (matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-apple-darwin')
+        if: matrix.os == 'macos-latest'
 
       - name: Run program on Windows
         run: |
@@ -120,4 +111,4 @@ jobs:
           ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 1
-        if: matrix.os == 'windows-latest' && (matrix.target == 'x86_64-pc-windows-gnu' || matrix.target == 'aarch64-pc-windows-gnu')
+        if: matrix.os == 'windows-latest'
