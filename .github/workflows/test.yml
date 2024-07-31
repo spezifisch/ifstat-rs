@@ -48,7 +48,7 @@ jobs:
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           cargo test
-          cargo build --release --target "${{ matrix.target }}"
+          cargo build --release
 
       - name: Build and Test on macOS
         continue-on-error: true
@@ -57,24 +57,24 @@ jobs:
           RUSTFLAGS: "-C linker=x86_64-apple-darwin19-clang"
         run: |
           cargo test
-          cargo build --release --target "${{ matrix.target }}"
+          cargo build --release
 
       - name: Build and Test on Windows
         continue-on-error: true
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
           cargo test
-          cargo build --release --target "${{ matrix.target }}"
+          cargo build --release
 
       - name: Show target listing for debug purposes
         continue-on-error: true
-        run: ls -lR target
+        run: find target
 
       - name: Move build files to build_output
         continue-on-error: true
         run: |
           mkdir -p build_output
-          cp target/${{ matrix.target }}/release/ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }} build_output/
+          cp target/release/ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }} build_output/
 
       - name: Run program on Linux
         if: matrix.target == 'x86_64-unknown-linux-gnu'
