@@ -45,12 +45,19 @@ jobs:
         run: cargo tree
 
       - name: Build and Test on Linux
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        if: runner.os == 'Linux'
         run: |
           cargo test
           cargo build --release
 
-      - name: Build and Test on macOS
+      - name: Build and Test on macOS ARM
+        continue-on-error: true
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: |
+          cargo test
+          cargo build --release
+
+      - name: Build and Test on macOS Intel
         continue-on-error: true
         if: matrix.target == 'x86_64-apple-darwin'
         env:
@@ -61,7 +68,7 @@ jobs:
 
       - name: Build and Test on Windows
         continue-on-error: true
-        if: matrix.target == 'x86_64-pc-windows-gnu'
+        if: runner.os == 'Windows'
         run: |
           cargo test
           cargo build --release
@@ -77,7 +84,7 @@ jobs:
           cp target/release/ifstat-rs build_output/${{ matrix.target == 'x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
 
       - name: Run program on Linux
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        if: runner.os == 'Linux'
         run: |
           timeout 60s ./build_output/ifstat-rs -V
           timeout 60s ./build_output/ifstat-rs --version
@@ -85,16 +92,15 @@ jobs:
 
       - name: Run program on macOS
         continue-on-error: true
-        if: matrix.target == 'aarch64-apple-darwin' || matrix.target == 'x86_64-apple-darwin'
+        if: runner.os == 'macOS'
         run: |
-          brew install coreutils
-          gtimeout 60s ./build_output/ifstat-rs -V
-          gtimeout 60s ./build_output/ifstat-rs --version
-          gtimeout 60s ./build_output/ifstat-rs -a 0 3
+          ./build_output/ifstat-rs -V
+          ./build_output/ifstat-rs --version
+          ./build_output/ifstat-rs -a 0 3
 
       - name: Run program on Windows
         continue-on-error: true
-        if: matrix.target == 'x86_64-pc-windows-gnu'
+        if: runner.os == 'Windows'
         run: |
           ./build_output/ifstat-rs.exe -V
           ./build_output/ifstat-rs.exe --version
