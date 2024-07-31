@@ -1,8 +1,8 @@
 [package]
 name = "ifstat-rs"
-version = "1.0.0"
+version = "1.9.9"
 authors = ["spezifisch <spezifisch+JOKING@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "A tool to report network interface statistics."
 repository = "https://github.com/spezifisch/ifstat-rs"
 license = "MIT"
