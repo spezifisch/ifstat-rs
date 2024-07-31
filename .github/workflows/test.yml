@@ -64,7 +64,7 @@ jobs:
           # runners are ARM so Intel is cross-compiling
           rustup target install "${{ matrix.target }}"
           cargo test
-          cargo build --release
+          cargo build --release --target "${{ matrix.target }}"
 
       - name: Build and Test on Windows
         continue-on-error: true
@@ -80,21 +80,20 @@ jobs:
           find target
 
       - name: Move build files to build_output (non-cross)
-        if: matrix.target != 'stable-x86_64-pc-windows-gnu'
+        if: matrix.target != 'x86_64-apple-darwin'
         continue-on-error: true
         run: |
           mkdir -p build_output
-          cp target/release/ifstat-rs build_output/${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
+          cp target/release/ifstat-rs${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }} build_output/
 
       - name: Move build files to build_output (cross)
-        if: matrix.target == 'stable-x86_64-pc-windows-gnu'
+        if: matrix.target == 'x86_64-apple-darwin'
         continue-on-error: true
         run: |
           mkdir -p build_output
-          cp target/release/${{ matrix.target }}/ifstat-rs.exe build_output/${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
+          cp target/release/${{ matrix.target }}/ifstat-rs build_output/
 
       - name: Run program on Linux
-        # runner.os is Linux too for windows-latest
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           timeout 60s ./build_output/ifstat-rs -V
