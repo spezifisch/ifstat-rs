@@ -5,17 +5,14 @@ on:
     tags:
       - v*
   workflow_dispatch:
-  release:
-    types:
-      - created
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        target: [x86_64-unknown-linux-gnu, x86_64-apple-darwin, x86_64-pc-windows-gnu]
+        target:
+          - x86_64-unknown-linux-gnu
 
     steps:
       - name: Checkout code
@@ -73,7 +70,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: target/x86_64-unknown-linux-gnu/release/ifstat-rs
-          asset_name: ifstat-rs-linux
+          asset_name: ifstat-rs-linux_x86_64
           asset_content_type: application/octet-stream
 
       - name: Upload macOS Release Asset
@@ -83,7 +80,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: target/x86_64-apple-darwin/release/ifstat-rs
-          asset_name: ifstat-rs-macos
+          asset_name: ifstat-rs-macos-x86_64
           asset_content_type: application/octet-stream
 
       - name: Upload Windows Release Asset
@@ -93,5 +90,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: target/x86_64-pc-windows-gnu/release/ifstat-rs.exe
-          asset_name: ifstat-rs-windows.exe
+          asset_name: ifstat-rs-windows-x86_64.exe
           asset_content_type: application/octet-stream
