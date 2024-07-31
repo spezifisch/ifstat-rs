@@ -43,8 +43,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/${{ matrix.target }}/release/ifstat-rs${{ matrix.os == 'windows-latest' && '.exe' || '' }}
-          asset_name: ifstat-rs-${{ matrix.os }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+          asset_path: target/${{ matrix.target }}/release/ifstat-rs${{ matrix.otarget == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
+          asset_name: ifstat-rs-${{ matrix.target }}${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
           asset_content_type: application/octet-stream
 
   release:
