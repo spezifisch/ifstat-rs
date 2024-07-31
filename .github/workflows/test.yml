@@ -60,9 +60,9 @@ jobs:
       - name: Build and Test on macOS Intel
         continue-on-error: true
         if: matrix.target == 'x86_64-apple-darwin'
-        env:
-          RUSTFLAGS: "-C linker=x86_64-apple-darwin19-clang"
         run: |
+          # runners are ARM so Intel is cross-compiling
+          rustup target install "${{ matrix.target }}"
           cargo test
           cargo build --release
 
