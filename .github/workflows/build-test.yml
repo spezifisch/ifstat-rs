@@ -105,7 +105,6 @@ jobs:
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'macos-latest'
 
       - name: Run program on Windows
         if: runner.os == 'Windows' && env.BUILD_WINDOWS != '0'
