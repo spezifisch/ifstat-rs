@@ -41,11 +41,11 @@ jobs:
         run: |
           echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
-      - name: Show config for debug purposes
+      - name: Show dep tree for debug purposes
         run: cargo tree
 
       - name: Build and Test on Linux
-        if: runner.os == 'Linux'
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           cargo test
           cargo build --release
@@ -68,7 +68,7 @@ jobs:
 
       - name: Build and Test on Windows
         continue-on-error: true
-        if: runner.os == 'Windows'
+        if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
           cargo test
           cargo build --release
@@ -95,7 +95,7 @@ jobs:
 
       - name: Run program on macOS
         continue-on-error: true
-        if: runner.os == 'macOS'
+        if: matrix.target == 'aarch64-apple-darwin' || matrix.target == 'x86_64-apple-darwin'
         run: |
           ./build_output/ifstat-rs -V
           ./build_output/ifstat-rs --version
@@ -103,7 +103,7 @@ jobs:
 
       - name: Run program on Windows
         continue-on-error: true
-        if: runner.os == 'Windows'
+        if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
           ./build_output/ifstat-rs.exe -V
           ./build_output/ifstat-rs.exe --version
