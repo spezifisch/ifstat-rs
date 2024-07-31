@@ -24,7 +24,7 @@ jobs:
           - os: macos-latest
             target: x86_64-apple-darwin
           - os: windows-latest
-            target: x86_64-pc-windows-gnu
+            target: x86_64-pc-windows-msvc
 
     steps:
       - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
 
       - name: Build and Test on Windows
         continue-on-error: true
-        if: matrix.target == 'x86_64-pc-windows-gnu'
+        if: matrix.target == 'x86_64-pc-windows-msvc'
         run: |
           rustup target add "${{ matrix.target }}"
           cargo test
@@ -81,18 +81,18 @@ jobs:
           find target
 
       - name: Move build files to build_output (non-cross)
-        if: matrix.target != 'x86_64-pc-windows-gnu'
+        if: matrix.target != 'x86_64-pc-windows-msvc'
         continue-on-error: true
         run: |
           mkdir -p build_output
-          cp target/release/ifstat-rs build_output/${{ matrix.target == 'x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
+          cp target/release/ifstat-rs build_output/${{ matrix.target == 'x86_64-pc-windows-msvc' && 'ifstat-rs.exe' || '' }}
 
       - name: Move build files to build_output (cross)
-        if: matrix.target == 'x86_64-pc-windows-gnu'
+        if: matrix.target == 'x86_64-pc-windows-msvc'
         continue-on-error: true
         run: |
           mkdir -p build_output
-          cp target/release/${{ matrix.target }}/ifstat-rs.exe build_output/${{ matrix.target == 'x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
+          cp target/release/${{ matrix.target }}/ifstat-rs.exe build_output/${{ matrix.target == 'x86_64-pc-windows-msvc' && 'ifstat-rs.exe' || '' }}
 
       - name: Run program on Linux
         # runner.os is Linux too for windows-latest
@@ -112,7 +112,7 @@ jobs:
 
       - name: Run program on Windows
         continue-on-error: true
-        if: matrix.target == 'x86_64-pc-windows-gnu'
+        if: matrix.target == 'x86_64-pc-windows-msvc'
         run: |
           ./build_output/ifstat-rs.exe -V
           ./build_output/ifstat-rs.exe --version
