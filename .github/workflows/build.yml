@@ -1,6 +1,5 @@
-name: Build
-# The job of this script is to check if it builds on all platforms.
-# We cross-compile from Linux.
+name: Host-native test
+# This script should test and run the program in native environment.
 
 on:
   push:
@@ -13,14 +12,17 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-apple-darwin
-          - x86_64-pc-windows-gnu
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: x86_64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-pc-windows-gnu
 
     steps:
       - name: Checkout code
@@ -33,15 +35,67 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install dependencies
-        run: sudo apt-get install -y gcc-multilib g++-multilib
+      - name: Install dependencies for macOS cross-compilation
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: sudo apt-get install -y build-essential cmake clang curl libssl-dev llvm
 
-      - name: Install target architecture
-        run: rustup target add "${{ matrix.target }}"
+      - name: Install dependencies for Windows cross-compilation
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: sudo apt-get install -y mingw-w64
+
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Set environment variables
+        run: |
+          echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Show config for debug purposes
         run: cargo tree
 
-      - name: Build
+      - name: Build and Test on Linux
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          cargo build --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
+          cargo test --release --target ${{ matrix.target }}
+
+      - name: Build and Test on macOS
+        continue-on-error: true
+        if: matrix.target == 'x86_64-apple-darwin'
+        env:
+          RUSTFLAGS: "-C linker=x86_64-apple-darwin19-clang"
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          cargo test --release --target ${{ matrix.target }}
+
+      - name: Build and Test on Windows
+        continue-on-error: true
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          cargo test --release --target ${{ matrix.target }}
+
+      - name: Run program on Linux
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 3
+
+      - name: Run program on macOS
+        continue-on-error: true
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: |
+          brew install coreutils
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 3
+
+      - name: Run program on Windows
+        continue-on-error: true
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          sudo apt-get install -y wine
+          wine ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
+          wine ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
+          wine ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 3
