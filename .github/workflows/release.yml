@@ -14,7 +14,7 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
-          #- x86_64-apple-darwin # it seems we need xcode for that
+          #- x86_64-apple-darwin # it seems we need xcode for that, we need the native macos runner
           #- aarch64-apple-darwin # it seems we need xcode for that
           - x86_64-pc-windows-gnu
 
@@ -40,6 +40,9 @@ jobs:
 
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
+
+      - name: "Debug: show target dir"
+        run: find target -type x
 
       - name: Upload Build Artifact
         if: success() || failure()

@@ -64,6 +64,9 @@ jobs:
           cargo build --release
           cargo test
 
+      - name: Show config for debug purposes
+        run: cargo tree
+
       - name: Run program on Linux
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |

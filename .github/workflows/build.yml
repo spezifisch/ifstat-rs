@@ -12,14 +12,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  build-linux-win:
     runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
-          - x86_64-apple-darwin
           - x86_64-pc-windows-gnu
 
     steps:
@@ -45,10 +44,14 @@ jobs:
           # build target for rust
           echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
-      - name: Show config for debug purposes
-        run: cargo tree
-
       - name: Build
         run: |
-          cargo build
-          cargo build --release
+          cargo build --target "${{ matrix.target }}"
+          mkdir -p build_output
+          cp target/${{ matrix.target }}/debug/ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }} build_output/
+
+      - name: Upload built binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
+          path: build_output/
