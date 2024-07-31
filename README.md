@@ -1,16 +1,15 @@
 # ifstat-rs
 
-`ifstat-rs` is a simple Rust tool to parse and display network I/O statistics from `/proc/net/dev` once a second.
+`ifstat-rs` is a straightforward and efficient Rust tool to report network interface stats just like [ifstat](http://gael.roualland.free.fr/ifstat/).
 
-*"This project has been generated with the assistance of ChatGPT. Please be aware that ChatGPT can make mistakes. It is important to review and verify all information provided by the tool." is what it says. Don't use this tool.*
+[![Build and test](https://github.com/spezifisch/ifstat-rs/actions/workflows/build-test.yml/badge.svg)](https://github.com/spezifisch/ifstat-rs/actions/workflows/build-test.yml)
 
 ## Features
 
-- Parses network interface statistics from `/proc/net/dev`
-- Displays RX and TX bytes for each interface every second
-- Supports monitoring specific interfaces, all interfaces, or loopback interfaces
-- Allows setting delay between updates and limiting the number of updates
-- Displays detailed build information including commit hash and build timestamp
+- **Real-time Monitoring:** Parses and displays RX and TX bytes for each network interface every second.
+- **Interface Flexibility:** Monitor specific interfaces, all interfaces, or just loopback interfaces.
+- **Configurable Updates:** Set delays between updates and limit the number of updates.
+- **Detailed Build Info:** Displays commit hash and build timestamp for thorough build information.
 
 ## Installation
 
@@ -18,59 +17,65 @@ To install `ifstat-rs`, ensure you have Rust and Cargo installed, then run:
 
 ```sh
 cargo build --release
+sudo cp target/release/ifstat-rs /usr/local/bin/
+ifstat-rs --version
 ```
 
 ## Usage
 
-Run the tool with:
-
-```sh
-cargo run --release
-```
-
 ### Options
 
-- `-a`: Monitor all interfaces
-- `-l`: Include loopback interfaces
-- `-i <interfaces>`: Specify interfaces to monitor, separated by commas (e.g., `-i eth0,lo`)
-- `--first-measurement <seconds>`: Set delay before the first measurement (default is same as --delay)
-- `<delay>`: Delay between updates in seconds (default is 1 second)
-- `<count>`: Number of updates before stopping (default is unlimited)
+**ifstat-rs**
+
+- `-a`: Monitor all interfaces.
+- `-l`: Include loopback interfaces.
+- `-i <interfaces>`: Specify interfaces to monitor, separated by commas (e.g., `-i eth0,lo`).
+- `--first-measurement <seconds>`: Set delay before the first measurement (default is the same as --delay).
+- `<delay>`: Delay between updates in seconds (default is 1 second).
+- `<count>`: Number of updates before stopping (default is unlimited).
 
 ### Examples
 
 Monitor specific interfaces:
 
 ```sh
-cargo run --release -- -i eth0,lo 1 10
+ifstat-rs -i eth0,wlan1
 ```
 
 Monitor all interfaces:
 
 ```sh
-cargo run --release -- -a 1 10
+ifstat-rs -a 1 10
 ```
 
 Include loopback interfaces:
 
 ```sh
-cargo run --release -- -l 1 10
+ifstat-rs -l
 ```
 
 Specify delay and count:
 
 ```sh
-cargo run --release -- -a --first-measurement 0.5 1 10
+ifstat-rs -a --first-measurement 1 60 10
 ```
 
-## Contributing
+### Development
 
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature-branch`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature-branch`)
-5. Create a new Pull Request
+Run the tool with:
+
+```sh
+cargo run -- -a
+```
+
+## Supported Platforms
+
+- **Linux:** Fully supported with real-time network statistics from `/proc/net/dev`.
+- **macOS:** Provisions in place, support in development.
+- **Windows:** Provisions in place, support in development.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+*"This project has been generated with the assistance of ChatGPT. Please be aware that ChatGPT can make mistakes. It is important to review and verify all information provided by the tool."* is what it says. Just so you know. Because I guess maybe all the bugs aren't my fault after all.
