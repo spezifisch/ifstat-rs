@@ -63,7 +63,7 @@ jobs:
         run: |
           # runners are ARM so Intel is cross-compiling
           rustup target install "${{ matrix.target }}"
-          cargo test
+          cargo test --target "${{ matrix.target }}"
           cargo build --release --target "${{ matrix.target }}"
 
       - name: Build and Test on Windows
@@ -77,7 +77,8 @@ jobs:
         continue-on-error: true
         run: |
           file target/*/ifstat-rs* || true
-          find target
+          file target/*/*/ifstat-rs* || true
+          find target -name "ifstat-rs*"
 
       - name: Move build files to build_output (non-cross)
         if: matrix.target != 'x86_64-apple-darwin'
