@@ -6,22 +6,30 @@ edition = "2021"
 description = "A tool to report network interface statistics."
 repository = "https://github.com/spezifisch/ifstat-rs"
 license = "MIT"
+build = "build.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 regex = "1"
-clap = { version = "3.2", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 lazy_static = "1.5"
 log = "0.4.22"
 env_logger = "0.11.5"
-
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["iphlpapi", "ifmib", "ntstatus"] }
 ntapi = "=0.4.1"
 
 [build-dependencies]
-vergen = "6"
+vergen = { version = "8.3.2", features = [
+    "build",
+    "cargo",
+    "git",
+    "gitcl",
+    "rustc",
+    "si",
+] }
+anyhow = "1.0.86"
 
 [dev-dependencies]
 assert_cmd = "2.0.15"
-predicates = "2.1.5"
+predicates = "3.1.2"

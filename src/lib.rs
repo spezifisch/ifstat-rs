@@ -60,22 +60,31 @@ pub struct Opts {
 
 lazy_static! {
     static ref LONG_VERSION: String = {
+        // get build config
         let commit_hash = option_env!("VERGEN_GIT_SHA").unwrap_or("unknown");
+        let git_dirty = option_env!("VERGEN_GIT_DIRTY").unwrap_or("unknown");
         let build_timestamp = option_env!("VERGEN_BUILD_TIMESTAMP").unwrap_or("unknown");
         let rust_version = option_env!("VERGEN_RUSTC_SEMVER").unwrap_or("unknown");
         let target = env::var("TARGET").unwrap_or_else(|_| "unknown".to_string());
 
+        // build git commit string
+        let commit_str = if commit_hash.starts_with("VERGEN") {
+            "non-git build".to_string()
+        } else {
+            let suffix = if git_dirty == "false" { "" } else { "-dirty" };
+            format!("{}{}", commit_hash, suffix)
+        };
+
         format!(
             "A tool to report network interface statistics.\n\n\
             Author: {}\n\
+            Repo: {}\n\
             License: {}\n\
-            Build info:\n\
             Commit: {}\n\
             Build Timestamp: {}\n\
             Rust Version: {}\n\
-            Compilation Target: {}\n\
-            Repo: {}",
-            AUTHOR, LICENSE, commit_hash, build_timestamp, rust_version, target, REPO_URL
+            Compilation Target: {}",
+            AUTHOR, REPO_URL, LICENSE, commit_str, build_timestamp, rust_version, target
         )
     };
 }

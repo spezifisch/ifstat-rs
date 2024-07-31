@@ -1,12 +1,13 @@
-use std::path::Path;
-use vergen::{vergen, Config};
+use anyhow::Result;
+use vergen::EmitBuilder;
 
-fn main() {
-    if Path::new(".git").exists() {
-        vergen(Config::default()).expect("Unable to generate build information");
-    } else {
-        println!(
-            "cargo:warning=No .git directory found. Skipping vergen build information generation."
-        );
-    }
+pub fn main() -> Result<()> {
+    EmitBuilder::builder()
+        .build_timestamp()
+        .all_rustc()
+        .all_cargo()
+        .git_sha(false)
+        .git_dirty(true)
+        .emit()?;
+    Ok(())
 }
