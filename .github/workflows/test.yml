@@ -70,8 +70,9 @@ jobs:
         continue-on-error: true
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
+          rustup target add "${{ matrix.target }}"
           cargo test
-          cargo build --release
+          cargo build --release --target "${{ matrix.target }}"
 
       - name: Show target listing for debug purposes
         continue-on-error: true
@@ -79,11 +80,19 @@ jobs:
           file target/*/ifstat-rs* || true
           find target
 
-      - name: Move build files to build_output
+      - name: Move build files to build_output (non-cross)
+        if: matrix.target != 'x86_64-pc-windows-gnu'
         continue-on-error: true
         run: |
           mkdir -p build_output
           cp target/release/ifstat-rs build_output/${{ matrix.target == 'x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
+
+      - name: Move build files to build_output (cross)
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        continue-on-error: true
+        run: |
+          mkdir -p build_output
+          cp target/release/${{ matrix.target }}/ifstat-rs.exe build_output/${{ matrix.target == 'x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
 
       - name: Run program on Linux
         # runner.os is Linux too for windows-latest
