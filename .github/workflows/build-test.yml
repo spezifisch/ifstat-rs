@@ -45,7 +45,7 @@ jobs:
           override: true
 
       - name: Install target
-        run: rustup target add ${{ matrix.target }}
+        run: rustup target add "${{ matrix.target }}"
 
       - name: Install cross
         run: cargo install cross
@@ -67,7 +67,7 @@ jobs:
         run: cargo tree
 
       - name: Build and Test on Linux
-        if: runner.os == 'Linux'
+        if: runner.os == "Linux"
         run: |
           if [ "${{ matrix.os }}" == "ubuntu-latest" ] && [ "${{ matrix.target }}" != "x86_64-unknown-linux-gnu" ]; then
             cross build --release --target ${{ matrix.target }}
@@ -78,7 +78,7 @@ jobs:
           fi
 
       - name: Build and Test on macOS
-        if: runner.os == 'macOS' && fromJson(env.BUILD_MAC) != 0
+        if: runner.os == "macOS" && ${{ env.BUILD_MAC }} != "0"
         run: |
           if [ "${{ matrix.target }}" == "aarch64-apple-darwin" ]; then
             cross build --release --target ${{ matrix.target }}
@@ -89,7 +89,7 @@ jobs:
           fi
 
       - name: Build and Test on Windows
-        if: runner.os == 'Windows' && env.BUILD_WINDOWS != '0'
+        if: runner.os == "Windows" && ${{ env.BUILD_WIN }} != "0"
         run: |
           cargo build --release --target ${{ matrix.target }}
           cargo test --release --target ${{ matrix.target }}
@@ -102,7 +102,7 @@ jobs:
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
 
       - name: Run program on macOS
-        if: runner.os == 'macOS' && env.BUILD_MAC != '0'
+        if: runner.os == "macOS" && ${{ env.BUILD_MAC }} != "0"
         run: |
           brew install coreutils
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
@@ -110,7 +110,7 @@ jobs:
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
 
       - name: Run program on Windows
-        if: runner.os == 'Windows' && env.BUILD_WINDOWS != '0'
+        if: runner.os == "Windows" && ${{ env.BUILD_WIN }} != "0"
         run: |
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
