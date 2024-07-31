@@ -10,7 +10,6 @@
 - **Real-time Monitoring:** Parses and displays RX and TX bytes for each network interface every second.
 - **Interface Flexibility:** Monitor specific interfaces, all interfaces, or just loopback interfaces.
 - **Configurable Updates:** Set delays between updates and limit the number of updates.
-- **Detailed Build Info:** Displays commit hash and build timestamp for thorough build information.
 
 ## Installation
 
