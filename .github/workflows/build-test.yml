@@ -55,7 +55,10 @@ jobs:
         run: sudo apt-get install -y gcc-multilib g++-multilib
 
       - name: Set environment variables
-        run: echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
+        run: |
+          echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
+          echo "BUILD_MAC=${{ vars.BUILD_MAC }}" >> $GITHUB_ENV
+          echo "BUILD_WINDOWS=${{ vars.BUILD_WINDOWS }}" >> $GITHUB_ENV
 
       - name: Show config
         run: cargo tree
@@ -72,7 +75,7 @@ jobs:
           fi
 
       - name: Build and Test on macOS
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && env.BUILD_MAC != '0'
         run: |
           if [ "${{ matrix.target }}" == "aarch64-apple-darwin" ]; then
             cross build --release --target ${{ matrix.target }}
@@ -83,19 +86,20 @@ jobs:
           fi
 
       - name: Build and Test on Windows
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && env.BUILD_WINDOWS != '0'
         run: |
           cargo build --release --target ${{ matrix.target }}
           cargo test --release --target ${{ matrix.target }}
 
       - name: Run program on Linux (only native)
+        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
 
       - name: Run program on macOS
+        if: runner.os == 'macOS' && env.BUILD_MAC != '0'
         run: |
           brew install coreutils
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
@@ -104,6 +108,7 @@ jobs:
         if: matrix.os == 'macos-latest'
 
       - name: Run program on Windows
+        if: runner.os == 'Windows' && env.BUILD_WINDOWS != '0'
         run: |
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
@@ -111,4 +116,3 @@ jobs:
           ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 1
-        if: matrix.os == 'windows-latest'
