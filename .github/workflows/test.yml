@@ -67,26 +67,26 @@ jobs:
       - name: Run program on Linux
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
-          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
-          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 3
+          timeout 60s ./target/release/ifstat-rs -V
+          timeout 60s ./target/release/ifstat-rs --version
+          timeout 60s ./target/release/ifstat-rs -a 0 3
 
       - name: Run program on macOS
         continue-on-error: true
         if: matrix.target == 'aarch64-apple-darwin'
         run: |
           brew install coreutils
-          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
-          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
-          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 3
+          gtimeout 60s ./target/release/ifstat-rs -V
+          gtimeout 60s ./target/release/ifstat-rs --version
+          gtimeout 60s ./target/release/ifstat-rs -a 0 3
 
       - name: Run program on Windows
         continue-on-error: true
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
-          ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
+          ./target/release/ifstat-rs.exe -V
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
-          ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
+          ./target/release/ifstat-rs.exe --version
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
-          ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 3
+          ./target/release/ifstat-rs.exe -a 0 3
