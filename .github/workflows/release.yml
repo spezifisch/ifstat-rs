@@ -14,7 +14,8 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
-          - x86_64-apple-darwin
+          #- x86_64-apple-darwin # it seems we need xcode for that
+          #- aarch64-apple-darwin # it seems we need xcode for that
           - x86_64-pc-windows-gnu
 
     steps:
@@ -34,11 +35,11 @@ jobs:
       - name: Set environment variables
         run: echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
-
       - name: Run tests
         run: cargo test --release --target ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Upload Build Artifact
         if: success() || failure()

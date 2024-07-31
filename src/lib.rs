@@ -6,26 +6,21 @@ mod utils;
 
 use clap::Parser;
 use std::collections::HashMap;
-use std::io::{BufRead, BufReader}; // Add this import
 use std::env;
-#[cfg(target_os = "windows")]
-use winapi::shared::ifmib::MIB_IFTABLE;
-#[cfg(target_os = "windows")]
-use winapi::um::iphlpapi::GetIfTable;
+use std::io::BufRead;
 #[cfg(target_os = "windows")]
 use std::mem;
 #[cfg(target_os = "macos")]
 use std::process::Command;
-
-#[cfg(target_os = "linux")]
-use std::fs::File;
-
 #[cfg(target_os = "windows")]
 use winapi::shared::ifmib::MIB_IFTABLE;
 #[cfg(target_os = "windows")]
 use winapi::um::iphlpapi::GetIfTable;
-#[cfg(target_os = "windows")]
-use std::mem;
+
+#[cfg(target_os = "linux")]
+use std::fs::File;
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use std::io::BufReader;
 
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -85,10 +80,7 @@ lazy_static! {
     };
 }
 
-fn filter_zero_counters(
-    stats: &HashMap<String, (u64, u64)>,
-    interfaces: &[String],
-) -> Vec<String> {
+fn filter_zero_counters(stats: &HashMap<String, (u64, u64)>, interfaces: &[String]) -> Vec<String> {
     interfaces
         .iter()
         .filter(|iface| {
@@ -142,7 +134,9 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
     }
 }
 
-pub fn parse_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+pub fn parse_net_dev_stats<R: BufRead>(
+    reader: R,
+) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let mut stats = HashMap::new();
     let lines: Vec<_> = reader.lines().collect::<Result<_, _>>()?;
     test_debug!("Parsing {} lines", lines.len());
@@ -152,16 +146,31 @@ pub fn parse_net_dev_stats<R: BufRead>(reader: R) -> Result<HashMap<String, (u64
         if let Some((iface, rest)) = line.split_once(':') {
             let fields: Vec<&str> = rest.split_whitespace().collect();
             if fields.len() >= 9 {
-                let rx_bytes: u64 = fields[0].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid RX bytes"))?;
-                let tx_bytes: u64 = fields[8].parse().map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid TX bytes"))?;
+                let rx_bytes: u64 = fields[0].parse().map_err(|_| {
+                    std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid RX bytes")
+                })?;
+                let tx_bytes: u64 = fields[8].parse().map_err(|_| {
+                    std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid TX bytes")
+                })?;
                 stats.insert(iface.trim().to_string(), (rx_bytes, tx_bytes));
             } else {
-                test_debug!("Invalid line format: '{}' ({} fields: {:?})", line, fields.len(), fields);
-                return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, format!("Invalid line format: {} fields", fields.len())));
+                test_debug!(
+                    "Invalid line format: '{}' ({} fields: {:?})",
+                    line,
+                    fields.len(),
+                    fields
+                );
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Invalid line format: {} fields", fields.len()),
+                ));
             }
         } else {
             test_debug!("Invalid line format: '{}' (no colon found)", line);
-            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid line format (no colon found)"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Invalid line format (no colon found)",
+            ));
         }
     }
     Ok(stats)
