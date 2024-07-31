@@ -51,16 +51,19 @@ jobs:
         run: cargo install cross
 
       - name: Install dependencies on Linux
-        if: runner.os == 'Linux'
+        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get install -y gcc-multilib g++-multilib
 
       - name: Set environment variables
         run: |
+          # build target for rust
           echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
+          # define these as 0 to skip them; these being in `var` means you'll
+          # have to setup an environment with env vars in Github's repo settings
           echo "BUILD_MAC=${{ vars.BUILD_MAC }}" >> $GITHUB_ENV
           echo "BUILD_WINDOWS=${{ vars.BUILD_WINDOWS }}" >> $GITHUB_ENV
 
-      - name: Show config
+      - name: Show config for debug purposes
         run: cargo tree
 
       - name: Build and Test on Linux
@@ -75,7 +78,7 @@ jobs:
           fi
 
       - name: Build and Test on macOS
-        if: runner.os == 'macOS' && env.BUILD_MAC != '0'
+        if: runner.os == 'macOS' && fromJson(env.BUILD_MAC) != 0
         run: |
           if [ "${{ matrix.target }}" == "aarch64-apple-darwin" ]; then
             cross build --release --target ${{ matrix.target }}
