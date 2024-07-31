@@ -44,5 +44,4 @@ jobs:
 
       - name: Build
         run: |
-          cargo build --debug --target ${{ matrix.target }}
-          cargo build --release --target ${{ matrix.target }}
+          cargo build --target ${{ matrix.target }}
