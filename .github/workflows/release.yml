@@ -1,4 +1,5 @@
 name: Tagged Release
+# Tags like v1.2.3 get built and uploaded as releases.
 
 on:
   push:

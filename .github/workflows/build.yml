@@ -1,0 +1,48 @@
+name: Build
+# The job of this script is to check if it builds on all platforms.
+# We cross-compile from Linux.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-apple-darwin
+          - x86_64-pc-windows-gnu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Install dependencies
+        run: sudo apt-get install -y gcc-multilib g++-multilib
+
+      - name: Install target architecture
+        run: rustup target add "${{ matrix.target }}"
+
+      - name: Show config for debug purposes
+        run: cargo tree
+
+      - name: Build
+        run: |
+          cargo build --debug --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}

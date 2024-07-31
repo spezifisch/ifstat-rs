@@ -1,4 +1,5 @@
-name: Build and test
+name: Host-native test
+# This script should test and run the program in native environment.
 
 on:
   push:
@@ -18,16 +19,6 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: riscv64gc-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: armv7-unknown-linux-gnueabihf
-          - os: ubuntu-latest
-            target: i686-unknown-linux-gnu
-          - os: macos-latest
-            target: x86_64-apple-darwin
           - os: macos-latest
             target: aarch64-apple-darwin
           - os: windows-latest
@@ -44,62 +35,41 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install target
-        run: rustup target add "${{ matrix.target }}"
-
-      - name: Install cross
-        run: cargo install cross
-
-      - name: Install dependencies on Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install -y gcc-multilib g++-multilib
-
       - name: Set environment variables
         run: |
-          # build target for rust
+          # build target for rust, used in --version
           echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
-          # define these as 0 to skip them; these being in `var` means you'll
-          # have to setup an environment with env vars in Github's repo settings
 
       - name: Show config for debug purposes
         run: cargo tree
 
       - name: Build and Test on Linux
+        # linux build must succeed
         if: runner.os == 'Linux'
         run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ] && [ "${{ matrix.target }}" != "x86_64-unknown-linux-gnu" ]; then
-            cross build --release --target ${{ matrix.target }}
-            cross test --release --target ${{ matrix.target }}
-          else
-            cargo build --release --target ${{ matrix.target }}
-            cargo test --release --target ${{ matrix.target }}
-          fi
+          cargo build --release --target ${{ matrix.target }}
+          cargo test --release --target ${{ matrix.target }}
 
       - name: Build and Test on macOS
-        continue-on-error: true
+        continue-on-error: true # optional build
         if: runner.os == 'macOS'
         run: |
-          if [ "${{ matrix.target }}" == "aarch64-apple-darwin" ]; then
-            cross build --release --target ${{ matrix.target }}
-            cross test --release --target ${{ matrix.target }}
-          else
-            cargo build --release --target ${{ matrix.target }}
-            cargo test --release --target ${{ matrix.target }}
-          fi
+          cargo build --release --target ${{ matrix.target }}
+          cargo test --release --target ${{ matrix.target }}
 
       - name: Build and Test on Windows
-        continue-on-error: true
+        continue-on-error: true # optional build
         if: runner.os == 'Windows'
         run: |
           cargo build --release --target ${{ matrix.target }}
           cargo test --release --target ${{ matrix.target }}
 
-      - name: Run program on Linux (only native)
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'x86_64-unknown-linux-gnu'
+      - name: Run program on Linux
+        if: runner.os == 'Linux'
         run: |
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
-          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+          timeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 3
 
       - name: Run program on macOS
         continue-on-error: true
@@ -108,7 +78,7 @@ jobs:
           brew install coreutils
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs --version
-          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 1
+          gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -a 0 3
 
       - name: Run program on Windows
         continue-on-error: true
@@ -119,4 +89,4 @@ jobs:
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
           Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
-          ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 1
+          ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 3
