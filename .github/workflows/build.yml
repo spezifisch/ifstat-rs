@@ -1,4 +1,4 @@
-name: Build
+name: builds
 # The job of this script is to check if it builds on all platforms.
 # We cross-compile from Linux.
 

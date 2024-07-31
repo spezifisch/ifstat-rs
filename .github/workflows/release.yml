@@ -1,4 +1,4 @@
-name: Tagged Release
+name: tagged release
 # Tags like v1.2.3 get built and uploaded as releases.
 
 on:

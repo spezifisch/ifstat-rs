@@ -1,4 +1,4 @@
-name: Host-native test
+name: tests
 # This script should test and run the program in native environment.
 
 on:
@@ -19,9 +19,9 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: x86_64-apple-darwin
-          - os: ubuntu-latest
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
             target: x86_64-pc-windows-gnu
 
     steps:
@@ -35,17 +35,6 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install dependencies for macOS cross-compilation
-        if: matrix.target == 'x86_64-apple-darwin'
-        run: sudo apt-get install -y build-essential cmake clang curl libssl-dev llvm
-
-      - name: Install dependencies for Windows cross-compilation
-        if: matrix.target == 'x86_64-pc-windows-gnu'
-        run: sudo apt-get install -y mingw-w64
-
-      - name: Install target
-        run: rustup target add ${{ matrix.target }}
-
       - name: Set environment variables
         run: |
           echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
@@ -56,8 +45,8 @@ jobs:
       - name: Build and Test on Linux
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          cargo build --release --target ${{ matrix.target }}
-          cargo test --release --target ${{ matrix.target }}
+          cargo build
+          cargo test
 
       - name: Build and Test on macOS
         continue-on-error: true
@@ -65,15 +54,15 @@ jobs:
         env:
           RUSTFLAGS: "-C linker=x86_64-apple-darwin19-clang"
         run: |
-          cargo build --release --target ${{ matrix.target }}
-          cargo test --release --target ${{ matrix.target }}
+          cargo build
+          cargo test
 
       - name: Build and Test on Windows
         continue-on-error: true
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
-          cargo build --release --target ${{ matrix.target }}
-          cargo test --release --target ${{ matrix.target }}
+          cargo build
+          cargo test
 
       - name: Run program on Linux
         if: matrix.target == 'x86_64-unknown-linux-gnu'
@@ -84,7 +73,7 @@ jobs:
 
       - name: Run program on macOS
         continue-on-error: true
-        if: matrix.target == 'x86_64-apple-darwin'
+        if: matrix.target == 'aarch64-apple-darwin'
         run: |
           brew install coreutils
           gtimeout 60s ./target/${{ matrix.target }}/release/ifstat-rs -V
@@ -95,7 +84,9 @@ jobs:
         continue-on-error: true
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
-          sudo apt-get install -y wine
-          wine ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
-          wine ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
-          wine ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 3
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
+          ./target/${{ matrix.target }}/release/ifstat-rs.exe -V
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
+          ./target/${{ matrix.target }}/release/ifstat-rs.exe --version
+          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
+          ./target/${{ matrix.target }}/release/ifstat-rs.exe -a 0 3

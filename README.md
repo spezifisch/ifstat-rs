@@ -2,7 +2,8 @@
 
 `ifstat-rs` is a straightforward and efficient Rust tool to report network interface stats just like [ifstat](http://gael.roualland.free.fr/ifstat/).
 
-[![Build and test](https://github.com/spezifisch/ifstat-rs/actions/workflows/build-test.yml/badge.svg)](https://github.com/spezifisch/ifstat-rs/actions/workflows/build-test.yml)
+[![tests](https://github.com/spezifisch/ifstat-rs/actions/workflows/test.yml/badge.svg)](https://github.com/spezifisch/ifstat-rs/actions/workflows/test.yml)
+[![builds](https://github.com/spezifisch/ifstat-rs/actions/workflows/build.yml/badge.svg)](https://github.com/spezifisch/ifstat-rs/actions/workflows/build.yml)
 
 ## Features
 
