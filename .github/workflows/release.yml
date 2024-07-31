@@ -13,6 +13,8 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
+          - x86_64-apple-darwin
+          - x86_64-pc-windows-gnu
 
     steps:
       - name: Checkout code
@@ -37,15 +39,12 @@ jobs:
       - name: Run tests
         run: cargo test --release --target ${{ matrix.target }}
 
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Build Artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@v2
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/${{ matrix.target }}/release/ifstat-rs${{ matrix.otarget == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
-          asset_name: ifstat-rs-${{ matrix.target }}${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
-          asset_content_type: application/octet-stream
+          name: ifstat-rs-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
 
   release:
     runs-on: ubuntu-latest
@@ -63,32 +62,54 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ifstat-rs-x86_64-unknown-linux-gnu
+          path: ./linux
+
       - name: Upload Linux Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/x86_64-unknown-linux-gnu/release/ifstat-rs
+          asset_path: ./linux/ifstat-rs
           asset_name: ifstat-rs-linux_x86_64
           asset_content_type: application/octet-stream
 
+      - name: Download macOS Artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v2
+        with:
+          name: ifstat-rs-x86_64-apple-darwin
+          path: ./macos
+
       - name: Upload macOS Release Asset
+        continue-on-error: true
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/x86_64-apple-darwin/release/ifstat-rs
+          asset_path: ./macos/ifstat-rs
           asset_name: ifstat-rs-macos-x86_64
           asset_content_type: application/octet-stream
 
+      - name: Download Windows Artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v2
+        with:
+          name: ifstat-rs-x86_64-pc-windows-gnu
+          path: ./windows
+
       - name: Upload Windows Release Asset
+        continue-on-error: true
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: target/x86_64-pc-windows-gnu/release/ifstat-rs.exe
+          asset_path: ./windows/ifstat-rs.exe
           asset_name: ifstat-rs-windows-x86_64.exe
           asset_content_type: application/octet-stream
