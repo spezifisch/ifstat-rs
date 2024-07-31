@@ -45,7 +45,7 @@ jobs:
       - name: Build and Test on Linux
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          cargo build
+          cargo build --release
           cargo test
 
       - name: Build and Test on macOS
@@ -54,14 +54,14 @@ jobs:
         env:
           RUSTFLAGS: "-C linker=x86_64-apple-darwin19-clang"
         run: |
-          cargo build
+          cargo build --release
           cargo test
 
       - name: Build and Test on Windows
         continue-on-error: true
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
-          cargo build
+          cargo build --release
           cargo test
 
       - name: Run program on Linux
