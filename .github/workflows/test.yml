@@ -75,7 +75,9 @@ jobs:
 
       - name: Show target listing for debug purposes
         continue-on-error: true
-        run: find target
+        run: |
+          file target/*/ifstat-rs* || true
+          find target
 
       - name: Move build files to build_output
         continue-on-error: true
@@ -84,7 +86,8 @@ jobs:
           cp target/release/ifstat-rs build_output/${{ matrix.target == 'x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
 
       - name: Run program on Linux
-        if: runner.os == 'Linux'
+        # runner.os is Linux too for windows-latest
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           timeout 60s ./build_output/ifstat-rs -V
           timeout 60s ./build_output/ifstat-rs --version
