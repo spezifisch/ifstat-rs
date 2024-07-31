@@ -74,7 +74,7 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p build_output
-          cp target/release/ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }} build_output/
+          cp target/release/ifstat-rs build_output/${{ matrix.target == 'x86_64-pc-windows-gnu' && 'ifstat-rs.exe' || '' }}
 
       - name: Run program on Linux
         if: matrix.target == 'x86_64-unknown-linux-gnu'
