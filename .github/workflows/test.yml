@@ -84,9 +84,6 @@ jobs:
         continue-on-error: true
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
-          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/release/ifstat-rs.exe -V
-          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/release/ifstat-rs.exe --version
-          Start-Process -FilePath "timeout.exe" -ArgumentList "60" -Wait -NoNewWindow
           ./target/release/ifstat-rs.exe -a 0 3
