@@ -70,10 +70,9 @@ jobs:
         continue-on-error: true
         if: matrix.target == 'stable-x86_64-pc-windows-msvc'
         run: |
-          rustup toolchain install "${{ matrix.target }}"
-          rustup default "${{ matrix.target }}"
-          cargo test
-          cargo build --release
+          rustup target add "${{ matrix.target }}"
+          cargo test --target "${{ matrix.target }}"
+          cargo build --release --target "${{ matrix.target }}"
 
       - name: Show target listing for debug purposes
         continue-on-error: true
