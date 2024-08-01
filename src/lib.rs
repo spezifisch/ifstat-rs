@@ -7,15 +7,13 @@ mod utils;
 use clap::Parser;
 use std::collections::HashMap;
 use std::env;
-use std::io::BufRead;
-#[cfg(target_os = "windows")]
-use std::mem;
+use std::io;
 #[cfg(target_os = "macos")]
 use std::process::Command;
 #[cfg(target_os = "windows")]
-use winapi::shared::ifmib::MIB_IFTABLE;
+use windows::Win32::Foundation::{FALSE, NO_ERROR};
 #[cfg(target_os = "windows")]
-use winapi::um::iphlpapi::GetIfTable;
+use windows::Win32::NetworkManagement::IpHelper::{GetIfTable, MIB_IFTABLE};
 
 #[cfg(target_os = "linux")]
 use std::fs::File;
@@ -122,28 +120,56 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
 
 #[cfg(target_os = "windows")]
 pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
-    let mut table: MIB_IFTABLE = unsafe { mem::zeroed() };
-    let mut size = mem::size_of_val(&table) as u32;
+    let mut size = 0;
 
     unsafe {
-        if GetIfTable(&mut table, &mut size, 0) == 0 {
-            let mut stats = HashMap::new();
-            for i in 0..table.dwNumEntries {
-                let row = table.table[i as usize];
-                let name = format!("Interface {}", i);
-                stats.insert(name, (row.dwInOctets as u64, row.dwOutOctets as u64));
-            }
-            Ok(stats)
-        } else {
-            Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Failed to retrieve network interface table",
-            ))
+        // First call to GetIfTable to get the necessary buffer size
+        let result = GetIfTable(None, &mut size, FALSE);
+        if result != NO_ERROR.0 {
+            eprintln!("GetIfTable call failed: {}", result);
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "Failed to get network interface table",
+            ));
         }
+    }
+
+    // Allocate the necessary buffer
+    let mut buffer: Vec<u8> = vec![0; size as usize];
+    let table: *mut MIB_IFTABLE = buffer.as_mut_ptr() as *mut MIB_IFTABLE;
+
+    unsafe {
+        let result = GetIfTable(Some(table), &mut size, FALSE);
+        if result != NO_ERROR.0 {
+            eprintln!("GetIfTable call failed: {}", result);
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "Failed to get network interface table",
+            ));
+        }
+
+        let table_ref = &*table;
+        let mut stats = HashMap::new();
+
+        for i in 0..table_ref.dwNumEntries {
+            let row = &table_ref.table[i as usize];
+            let iface_name = String::from_utf8_lossy(&row.wszName).trim().to_string();
+            let rx_bytes = row.dwInOctets as u64;
+            let tx_bytes = row.dwOutOctets as u64;
+
+            eprintln!(
+                "Interface: {}, RX: {}, TX: {}",
+                iface_name, rx_bytes, tx_bytes
+            );
+
+            stats.insert(iface_name, (rx_bytes, tx_bytes));
+        }
+
+        Ok(stats)
     }
 }
 
-pub fn parse_net_dev_stats<R: BufRead>(
+pub fn parse_net_dev_stats<R: io::BufRead>(
     reader: R,
 ) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let mut stats = HashMap::new();
