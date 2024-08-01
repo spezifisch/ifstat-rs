@@ -67,7 +67,6 @@ jobs:
           cargo build --release --target "${{ matrix.target }}"
 
       - name: Build and Test on Windows
-        continue-on-error: true
         if: matrix.target == 'stable-x86_64-pc-windows-gnu'
         run: |
           cargo test
@@ -78,7 +77,7 @@ jobs:
         run: |
           file target/*/ifstat-rs* || true
           file target/*/*/ifstat-rs* || true
-          find target -name "ifstat-rs*"
+          find target -name "ifstat-rs*" || true
 
       - name: Move build files to build_output (non-cross)
         if: matrix.target != 'x86_64-apple-darwin'
@@ -110,7 +109,6 @@ jobs:
           ./build_output/ifstat-rs -a 0 3
 
       - name: Run program on Windows
-        continue-on-error: true
         if: matrix.target == 'stable-x86_64-pc-windows-gnu'
         run: |
           ./build_output/ifstat-rs.exe -V

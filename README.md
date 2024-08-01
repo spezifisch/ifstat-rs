@@ -11,6 +11,12 @@
 - **Interface Flexibility:** Monitor specific interfaces, all interfaces, or just loopback interfaces.
 - **Configurable Updates:** Set delays between updates and limit the number of updates.
 
+## Supported Platforms
+
+- **Linux:** Fully supported with real-time network statistics from `/proc/net/dev`.
+- **macOS:** Provisions in place, support in development.
+- **Windows:** Supported as of v2.0.0.
+
 ## Installation
 
 To install `ifstat-rs`, ensure you have Rust and Cargo installed, then run:
@@ -67,12 +73,6 @@ Run the tool with:
 ```sh
 cargo run -- -a
 ```
-
-## Supported Platforms
-
-- **Linux:** Fully supported with real-time network statistics from `/proc/net/dev`.
-- **macOS:** Provisions in place, support in development.
-- **Windows:** Provisions in place, support in development.
 
 ## License
 

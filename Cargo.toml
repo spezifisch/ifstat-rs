@@ -1,6 +1,6 @@
 [package]
 name = "ifstat-rs"
-version = "1.9.999"
+version = "2.0.0"
 authors = ["spezifisch <spezifisch+JOKING@gmail.com>"]
 edition = "2021"
 description = "A tool to report network interface statistics."

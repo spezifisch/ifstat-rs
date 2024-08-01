@@ -54,7 +54,8 @@ jobs:
         run: cargo build --release --target ${{ matrix.variants.target }}
 
       - name: "Debug: show target dir"
-        run: find target -type x
+        continue-on-error: true
+        run: find target
 
       - name: Upload Build Artifact
         if: success() || failure()
@@ -114,14 +115,12 @@ jobs:
           asset_content_type: application/octet-stream
 
       - name: Download Windows Artifact
-        continue-on-error: true
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs.exe
           path: ./windows
 
       - name: Upload Windows Release Asset
-        continue-on-error: true
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
