@@ -11,15 +11,15 @@ jobs:
   build-linux-win:
     strategy:
       matrix:
-        variants:
+        include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
+          - os: windows-latest
             target: x86_64-pc-windows-gnu
           #- x86_64-apple-darwin # it seems we need xcode for that, we need the native macos runner
           #- aarch64-apple-darwin # it seems we need xcode for that
 
-    runs-on: ${{ matrix.variants.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,26 +32,25 @@ jobs:
           override: true
 
       - name: Install target
-        run: rustup target add "${{ matrix.variants.target }}"
-
-      - name: Install dependencies on Linux
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
-          if [ "${{ matrix.variants.target }}" = "x86_64-pc-windows-gnu" ]; then
-            sudo apt-get install -y mingw-w64
-          fi
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: rustup target add "${{ matrix.target }}"
 
       - name: Set environment variables
         run: |
           # for --version
-          echo "TARGET=${{ matrix.variants.target }}" >> $GITHUB_ENV
+          echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Run tests
-        run: cargo test --release --target ${{ matrix.variants.target }}
+        if: matrix.target != 'x86_64-apple-darwin'
+        run: cargo test --release
 
-      - name: Build
-        run: cargo build --release --target ${{ matrix.variants.target }}
+      - name: Build (native)
+        if: matrix.target != 'x86_64-apple-darwin'
+        run: cargo build --release
+
+      - name: Build (cross)
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: "Debug: show target dir"
         continue-on-error: true
@@ -61,8 +60,8 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v2
         with:
-          name: ifstat-rs${{ matrix.variants.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
-          path: target/${{ matrix.variants.target }}/release/
+          name: ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
+          path: target/${{ matrix.target }}/release/
 
   release:
     runs-on: ubuntu-latest
