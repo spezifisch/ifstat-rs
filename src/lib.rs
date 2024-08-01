@@ -232,7 +232,7 @@ fn shorten_name(name: &str) -> String {
 
         // assume form like \DEVICE\TCPIP_{2EE2C70C-A092-4D88-A654-98C8D7645CD5}
         if let Some(start_idx) = name.find("TCPIP_{") {
-            let prefix_len = start_idx + 1 + 7 + 4; // length of "TCPIP_{0737"
+            let prefix_len = start_idx + 11; // length of "TCPIP_{0737"
             if prefix_len < name.len() {
                 let suffix_start = name.len().saturating_sub(5);
                 let prefix = &name[start_idx..prefix_len];
