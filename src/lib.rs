@@ -11,6 +11,8 @@ use std::io;
 #[cfg(target_os = "macos")]
 use std::process::Command;
 #[cfg(target_os = "windows")]
+use std::slice;
+#[cfg(target_os = "windows")]
 use windows::Win32::Foundation::{ERROR_INSUFFICIENT_BUFFER, FALSE, NO_ERROR};
 #[cfg(target_os = "windows")]
 use windows::Win32::NetworkManagement::IpHelper::{GetIfTable, MIB_IFTABLE};
@@ -151,8 +153,10 @@ pub fn get_net_dev_stats() -> std::result::Result<HashMap<String, (u64, u64)>, s
         let table_ref = &*table;
         let mut stats = HashMap::new();
 
-        for i in 0..table_ref.dwNumEntries {
-            let row = &table_ref.table[i as usize];
+        // Create a slice from the dynamically sized array
+        let rows = slice::from_raw_parts(table_ref.table.as_ptr(), table_ref.dwNumEntries as usize);
+
+        for row in rows {
             let iface_name = String::from_utf16_lossy(&row.wszName).trim().to_string();
             let rx_bytes = row.dwInOctets as u64;
             let tx_bytes = row.dwOutOctets as u64;
