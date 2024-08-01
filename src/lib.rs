@@ -161,9 +161,11 @@ pub fn get_net_dev_stats() -> std::result::Result<HashMap<String, (u64, u64)>, s
             let rx_bytes = row.dwInOctets as u64;
             let tx_bytes = row.dwOutOctets as u64;
 
-            eprintln!(
+            test_debug!(
                 "Interface: {}, RX: {}, TX: {}",
-                iface_name, rx_bytes, tx_bytes
+                iface_name,
+                rx_bytes,
+                tx_bytes
             );
 
             stats.insert(iface_name, (rx_bytes, tx_bytes));
