@@ -52,8 +52,11 @@ pub struct Opts {
     #[clap(short = 'l')]
     pub monitor_loopback: bool,
 
-    /// Hides interfaces with zero counters.
-    #[clap(short = 'z')]
+    /// Hides interfaces with zero counters (default false on Linux/Mac, true in Windows).
+    #[clap(
+        short = 'z',
+        default_value_if("cfg(target_os = \"windows\")", "false", "true")
+    )]
     pub hide_zero_counters: bool,
 
     /// Delay between updates in seconds (default is 1 second)
