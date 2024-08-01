@@ -230,9 +230,10 @@ fn shorten_name(name: &str) -> String {
         let start = name.find('\\').map(|i| i + 1).unwrap_or(0);
         let name = &name[start..];
 
-        if let Some(start_idx) = name.find("TCPIP_") {
-            let prefix = &name[start_idx..start_idx + 6];
-            let suffix_start = name.len() - 4;
+        // assume form like \DEVICE\TCPIP_{2EE2C70C-A092-4D88-A654-98C8D7645CD5}
+        if let Some(start_idx) = name.find("\\TCPIP_{") {
+            let prefix = &name[start_idx..start_idx + 1 + 7 + 5];
+            let suffix_start = name.len() - 5;
             let suffix = &name[suffix_start..];
 
             return format!("{}..{}", prefix, suffix);
