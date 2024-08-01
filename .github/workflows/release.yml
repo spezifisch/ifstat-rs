@@ -87,6 +87,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-x86_64-unknown-linux-gnu
+          path: ifstat-rs-x86_64-unknown-linux-gnu
 
       - name: Upload Linux Release Asset
         uses: actions/upload-release-asset@v1
@@ -103,6 +104,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
+          path: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
 
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
@@ -120,6 +122,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-aarch64-apple-darwin
+          path: ifstat-rs-aarch64-apple-darwin
 
       - name: Upload macOS ARM Release Asset
         continue-on-error: true
@@ -138,6 +141,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-x86_64-apple-darwin
+          path: ifstat-rs-x86_64-apple-darwin
 
       - name: Upload macOS Intel Release Asset
         continue-on-error: true
