@@ -1,6 +1,12 @@
+mod net_stats;
+mod opts;
+mod utils;
+
 use clap::Parser;
-use ifstat_rs::{get_net_dev_stats, print_headers, print_stats, Opts};
+use net_stats::get_net_dev_stats;
+use opts::Opts;
 use tokio::time::{sleep, Duration};
+use utils::{print_headers, print_stats};
 
 #[tokio::main]
 async fn main() {
@@ -34,7 +40,13 @@ async fn main() {
 
     // Print headers based on specified or available interfaces
     let header_repeat_interval = 20;
-    print_headers(&monitor_interfaces, &mut std::io::stdout(), opts.hide_zero_counters, &previous_stats).unwrap();
+    print_headers(
+        &monitor_interfaces,
+        &mut std::io::stdout(),
+        opts.hide_zero_counters,
+        &previous_stats,
+    )
+    .unwrap();
 
     // Use first_measurement delay if provided, otherwise use delay
     let first_delay = opts.first_measurement.unwrap_or(opts.delay);
@@ -59,12 +71,25 @@ async fn main() {
             Ok(current_stats) => {
                 // Print headers again if enough lines have been printed
                 if lines_since_last_header >= header_repeat_interval {
-                    print_headers(&monitor_interfaces, &mut std::io::stdout(), opts.hide_zero_counters, &current_stats).unwrap();
+                    print_headers(
+                        &monitor_interfaces,
+                        &mut std::io::stdout(),
+                        opts.hide_zero_counters,
+                        &current_stats,
+                    )
+                    .unwrap();
                     lines_since_last_header = 0;
                 }
 
                 // Print stats for the monitored interfaces
-                print_stats(&previous_stats, &current_stats, &monitor_interfaces, &mut std::io::stdout(), opts.hide_zero_counters).unwrap();
+                print_stats(
+                    &previous_stats,
+                    &current_stats,
+                    &monitor_interfaces,
+                    &mut std::io::stdout(),
+                    opts.hide_zero_counters,
+                )
+                .unwrap();
                 previous_stats = current_stats;
 
                 lines_since_last_header += 1;
