@@ -157,7 +157,15 @@ pub fn get_net_dev_stats() -> std::result::Result<HashMap<String, (u64, u64)>, s
         let rows = slice::from_raw_parts(table_ref.table.as_ptr(), table_ref.dwNumEntries as usize);
 
         for row in rows {
-            let iface_name = String::from_utf16_lossy(&row.wszName).trim().to_string();
+            let iface_name_utf16: Vec<u16> = row
+                .wszName
+                .iter()
+                .take_while(|&&c| c != 0) // Stop at the first null character
+                .cloned()
+                .collect();
+            let iface_name = String::from_utf16_lossy(&iface_name_utf16)
+                .trim()
+                .to_string();
             let rx_bytes = row.dwInOctets as u64;
             let tx_bytes = row.dwOutOctets as u64;
 
