@@ -11,7 +11,7 @@ use std::io;
 #[cfg(target_os = "macos")]
 use std::process::Command;
 #[cfg(target_os = "windows")]
-use windows::Win32::Foundation::{FALSE, NO_ERROR};
+use windows::Win32::Foundation::{ERROR_INSUFFICIENT_BUFFER, FALSE, NO_ERROR};
 #[cfg(target_os = "windows")]
 use windows::Win32::NetworkManagement::IpHelper::{GetIfTable, MIB_IFTABLE};
 
@@ -119,17 +119,17 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
 }
 
 #[cfg(target_os = "windows")]
-pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+pub fn get_net_dev_stats() -> std::result::Result<HashMap<String, (u64, u64)>, std::io::Error> {
     let mut size = 0;
 
     unsafe {
         // First call to GetIfTable to get the necessary buffer size
         let result = GetIfTable(None, &mut size, FALSE);
-        if result != NO_ERROR.0 {
-            eprintln!("GetIfTable call failed: {}", result);
+        if result != ERROR_INSUFFICIENT_BUFFER.0 {
+            eprintln!("Initial GetIfTable call failed: {}", result);
             return Err(io::Error::new(
                 io::ErrorKind::Other,
-                "Failed to get network interface table",
+                "Failed to get buffer size for network interface table",
             ));
         }
     }
@@ -153,7 +153,7 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
 
         for i in 0..table_ref.dwNumEntries {
             let row = &table_ref.table[i as usize];
-            let iface_name = String::from_utf8_lossy(&row.wszName).trim().to_string();
+            let iface_name = String::from_utf16_lossy(&row.wszName).trim().to_string();
             let rx_bytes = row.dwInOctets as u64;
             let tx_bytes = row.dwOutOctets as u64;
 
