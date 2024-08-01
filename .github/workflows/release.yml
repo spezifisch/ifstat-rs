@@ -15,7 +15,7 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
-            target: x86_64-pc-windows-gnu
+            target: stable-x86_64-pc-windows-gnu
           #- x86_64-apple-darwin # it seems we need xcode for that, we need the native macos runner
           #- aarch64-apple-darwin # it seems we need xcode for that
 
@@ -50,18 +50,20 @@ jobs:
 
       - name: Build (cross)
         if: matrix.target == 'x86_64-apple-darwin'
-        run: cargo build --release --target ${{ matrix.target }}
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          mkdir -p target/release
+          cp target/*/release/ifstat-rs target/release
 
       - name: "Debug: show target dir"
         continue-on-error: true
-        run: find target
+        run: ls -1R target
 
       - name: Upload Build Artifact
-        if: success() || failure()
         uses: actions/upload-artifact@v2
         with:
-          name: ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
-          path: target/${{ matrix.target }}/release/
+          name: ifstat-rs${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
+          path: target/release/
 
   release:
     runs-on: ubuntu-latest
