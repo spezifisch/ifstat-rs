@@ -231,16 +231,23 @@ fn shorten_name(name: &str) -> String {
         let name = &name[start..];
 
         // assume form like \DEVICE\TCPIP_{2EE2C70C-A092-4D88-A654-98C8D7645CD5}
-        if let Some(start_idx) = name.find("\\TCPIP_{") {
-            let prefix = &name[start_idx..start_idx + 1 + 7 + 5];
-            let suffix_start = name.len() - 5;
-            let suffix = &name[suffix_start..];
+        if let Some(start_idx) = name.find("TCPIP_{") {
+            let prefix_len = start_idx + 1 + 7 + 4; // length of "TCPIP_{0737"
+            if prefix_len < name.len() {
+                let suffix_start = name.len().saturating_sub(5);
+                let prefix = &name[start_idx..prefix_len];
+                let suffix = &name[suffix_start..];
 
-            return format!("{}..{}", prefix, suffix);
-        } else {
+                return format!("{}..{}", prefix, suffix);
+            }
+        }
+
+        // If the name doesn't match the expected pattern or prefix_len check fails
+        if name.len() > 13 {
             return format!("{}...", &name[..13]);
         }
     }
+    // If the name length is 16 or less, or all other conditions fail
     name.to_string()
 }
 
