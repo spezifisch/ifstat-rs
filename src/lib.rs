@@ -225,6 +225,24 @@ pub fn parse_net_dev_stats<R: io::BufRead>(
     Ok(stats)
 }
 
+fn shorten_name(name: &str) -> String {
+    if name.len() > 16 {
+        let start = name.find('\\').map(|i| i + 1).unwrap_or(0);
+        let name = &name[start..];
+
+        if let Some(start_idx) = name.find("TCPIP_") {
+            let prefix = &name[start_idx..start_idx + 6];
+            let suffix_start = name.len() - 4;
+            let suffix = &name[suffix_start..];
+
+            return format!("{}..{}", prefix, suffix);
+        } else {
+            return format!("{}...", &name[..13]);
+        }
+    }
+    name.to_string()
+}
+
 pub fn print_headers(
     interfaces: &[String],
     writer: &mut dyn std::io::Write,
@@ -243,7 +261,8 @@ pub fn print_headers(
 
     let width = 18; // width for each interface field including space for in/out
     for (i, interface) in interfaces.iter().enumerate() {
-        let padded_name = format!("{:^width$}", interface, width = width);
+        let short_interface = shorten_name(interface);
+        let padded_name = format!("{:^width$}", short_interface, width = width);
         write!(writer, "{}", padded_name)?;
         if i < interfaces.len() - 1 {
             write!(writer, "  ")?; // additional spaces between columns
