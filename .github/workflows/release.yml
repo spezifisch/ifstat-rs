@@ -62,8 +62,8 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ifstat-rs${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
-          path: target/release/
+          name: ifstat-rs_${{ matrix.target }}${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
+          path: target/release/ifstat-rs${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
 
   release:
     runs-on: ubuntu-latest
@@ -78,14 +78,13 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
-          draft: false
+          draft: true
           prerelease: false
 
       - name: Download Linux Artifact
         uses: actions/download-artifact@v2
         with:
-          name: ifstat-rs
-          path: ./linux
+          name: ifstat-rs-x86_64-unknown-linux-gnu
 
       - name: Upload Linux Release Asset
         uses: actions/upload-release-asset@v1
@@ -93,33 +92,48 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linux/ifstat-rs
-          asset_name: ifstat-rs-linux_x86_64
+          asset_path: ifstat-rs-x86_64-unknown-linux-gnu
+          asset_name: ifstat-rs-linux-x86_64
           asset_content_type: application/octet-stream
 
-      - name: Download macOS Artifact
+      - name: Download macOS ARM Artifact
         continue-on-error: true
         uses: actions/download-artifact@v2
         with:
-          name: ifstat-rs
-          path: ./macos
+          name: ifstat-rs-aarch64-apple-darwin
 
-      - name: Upload macOS Release Asset
+      - name: Upload macOS ARM Release Asset
         continue-on-error: true
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./macos/ifstat-rs
+          asset_path: ifstat-rs-aarch64-apple-darwin
+          asset_name: ifstat-rs-macos-aarch64
+          asset_content_type: application/octet-stream
+
+      - name: Download macOS Intel Artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v2
+        with:
+          name: ifstat-rs-x86_64-apple-darwin
+
+      - name: Upload macOS Intel Release Asset
+        continue-on-error: true
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ifstat-rs-x86_64-apple-darwin
           asset_name: ifstat-rs-macos-x86_64
           asset_content_type: application/octet-stream
 
       - name: Download Windows Artifact
         uses: actions/download-artifact@v2
         with:
-          name: ifstat-rs.exe
-          path: ./windows
+          name: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
 
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
@@ -127,6 +141,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows/ifstat-rs.exe
+          asset_path: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
           asset_name: ifstat-rs-windows-x86_64.exe
           asset_content_type: application/octet-stream
