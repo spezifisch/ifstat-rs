@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::ffi::CStr;
 use std::io;
+use std::os::raw::c_char;
 use std::ptr::null_mut;
 use std::slice;
 
@@ -8,9 +9,9 @@ use widestring::U16CString;
 use windows::Win32::{
     Foundation::{ERROR_INSUFFICIENT_BUFFER, NO_ERROR},
     NetworkManagement::IpHelper::{
-        GetAdaptersAddresses, GetIfTable, GAA_FLAG_INCLUDE_PREFIX, IP_ADAPTER_ADDRESSES_LH,
-        MIB_IFTABLE,
+        GetAdaptersAddresses, GAA_FLAG_INCLUDE_PREFIX, IP_ADAPTER_ADDRESSES_LH,
     },
+    NetworkManagement::IpHelper::{GetIfTable, MIB_IFTABLE},
     Networking::WinSock::AF_UNSPEC,
 };
 
@@ -106,7 +107,7 @@ fn get_adapters_map() -> HashMap<String, String> {
             let friendly_name_ptr = (*current_adapter).FriendlyName.0;
             let friendly_name = U16CString::from_ptr_str(friendly_name_ptr)
                 .to_string_lossy()
-                .into_owned();
+                .to_owned();
 
             adapters_map.insert(adapter_name, friendly_name);
 
