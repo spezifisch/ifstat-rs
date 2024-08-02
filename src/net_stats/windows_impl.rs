@@ -123,7 +123,7 @@ pub fn get_device_string_to_name_map() -> HashMap<String, String> {
     let mut device_string_map = HashMap::new();
 
     for (guid, name) in adapters_map {
-        let device_string = format!(r"\DEVICE\TCPIP_{{}}", guid);
+        let device_string = format!(r"\DEVICE\TCPIP_{}", guid);
         device_string_map.insert(device_string, name);
     }
 
