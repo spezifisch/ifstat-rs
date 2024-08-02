@@ -51,3 +51,8 @@ pub fn parse_net_dev_stats<R: io::BufRead>(
     }
     Ok(stats)
 }
+
+pub fn get_device_string_to_name_map() -> HashMap<String, String> {
+    HashMap::new()
+    // TODO
+}

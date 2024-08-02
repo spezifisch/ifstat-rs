@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use crate::net_stats::get_device_string_to_name_map;
+
 #[macro_export]
 macro_rules! test_debug {
     ($($arg:tt)*) => {{
@@ -126,10 +128,20 @@ pub fn print_stats(
     Ok(())
 }
 
-// Prints interfaces names.
+// Prints the names of network devices.
 pub fn print_net_devices(stats: &HashMap<String, (u64, u64)>) {
+    // Get the map of device strings to human-readable names.
+    let adapter_name_map = get_device_string_to_name_map();
+
+    // Print the number of interfaces.
     println!("{} interfaces:", stats.len());
+
+    // Iterate over the keys (interface names) in the stats HashMap.
     for iface in stats.keys() {
-        println!("{}", iface);
+        // Try to get the human-readable name from the adapter_name_map.
+        match adapter_name_map.get(iface) {
+            Some(adapter_name) => println!("{} ({})", iface, adapter_name),
+            None => println!("{}", iface),
+        }
     }
 }
