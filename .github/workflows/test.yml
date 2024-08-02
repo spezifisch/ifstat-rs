@@ -98,6 +98,7 @@ jobs:
         run: |
           timeout 60s ./build_output/ifstat-rs -V
           timeout 60s ./build_output/ifstat-rs --version
+          timeout 60s ./build_output/ifstat-rs --list-interfaces
           timeout 60s ./build_output/ifstat-rs -a 0 3
 
       - name: Run program on macOS
@@ -106,6 +107,7 @@ jobs:
         run: |
           ./build_output/ifstat-rs -V
           ./build_output/ifstat-rs --version
+          ./build_output/ifstat-rs --list-interfaces
           ./build_output/ifstat-rs -a 0 3
 
       - name: Run program on Windows
@@ -113,4 +115,5 @@ jobs:
         run: |
           ./build_output/ifstat-rs.exe -V
           ./build_output/ifstat-rs.exe --version
+          ./build_output/ifstat-rs.exe --list-interfaces
           ./build_output/ifstat-rs.exe -a 0 3
