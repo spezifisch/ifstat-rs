@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ffi::CStr;
 use std::io;
 use std::ptr::null_mut;
 use std::slice;
@@ -98,8 +99,9 @@ fn get_adapters_map() -> HashMap<String, String> {
         let mut current_adapter = adapter_addresses;
         while !current_adapter.is_null() {
             let adapter_name_ptr = (*current_adapter).AdapterName.0;
-            let adapter_name = U16CString::from_ptr_str(adapter_name_ptr as *const u16)
-                .to_string_lossy()
+            let adapter_name = CStr::from_ptr(adapter_name_ptr as *const i8)
+                .to_str()
+                .expect("Invalid UTF-8")
                 .to_owned();
 
             let friendly_name_ptr = (*current_adapter).FriendlyName.0;
