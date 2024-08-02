@@ -1,7 +1,5 @@
 use std::collections::HashMap;
-use std::ffi::CStr;
 use std::io;
-use std::os::raw::c_char;
 use std::ptr::null_mut;
 use std::slice;
 
@@ -74,7 +72,7 @@ fn get_adapters_map() -> HashMap<String, String> {
             AF_UNSPEC.0 as u32,
             GAA_FLAG_INCLUDE_PREFIX,
             None,
-            null_mut(),
+            Some(null_mut()),
             &mut out_buf_len,
         );
 
@@ -89,7 +87,7 @@ fn get_adapters_map() -> HashMap<String, String> {
             AF_UNSPEC.0 as u32,
             GAA_FLAG_INCLUDE_PREFIX,
             None,
-            adapter_addresses,
+            Some(adapter_addresses),
             &mut out_buf_len,
         );
 
@@ -99,10 +97,10 @@ fn get_adapters_map() -> HashMap<String, String> {
 
         let mut current_adapter = adapter_addresses;
         while !current_adapter.is_null() {
-            let adapter_name_ptr = (*current_adapter).AdapterName;
-            let adapter_name = CStr::from_ptr(adapter_name_ptr as *const c_char)
+            let adapter_name_ptr = (*current_adapter).AdapterName.0;
+            let adapter_name = U16CString::from_ptr_str(adapter_name_ptr as *const u16)
                 .to_string_lossy()
-                .into_owned();
+                .to_owned();
 
             let friendly_name_ptr = (*current_adapter).FriendlyName.0;
             let friendly_name = U16CString::from_ptr_str(friendly_name_ptr)
@@ -128,20 +126,4 @@ pub fn get_device_string_to_name_map() -> HashMap<String, String> {
     }
 
     device_string_map
-}
-
-fn main() {
-    match get_net_dev_stats() {
-        Ok(stats) => {
-            for (iface, (rx_bytes, tx_bytes)) in stats {
-                println!("{}: RX {} bytes, TX {} bytes", iface, rx_bytes, tx_bytes);
-            }
-        }
-        Err(e) => eprintln!("Error: {}", e),
-    }
-
-    let device_map = get_device_string_to_name_map();
-    for (device, name) in device_map {
-        println!("{} -> {}", device, name);
-    }
 }
