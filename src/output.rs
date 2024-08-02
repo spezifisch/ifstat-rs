@@ -132,6 +132,14 @@ pub fn print_stats(
 pub fn print_net_devices(stats: &HashMap<String, (u64, u64)>) {
     // Get the map of device strings to human-readable names.
     let adapter_name_map = get_device_string_to_name_map();
+    if adapter_name_map.len() > 0 {
+        println!("{} adapters:", adapter_name_map.len());
+        for guid in adapter_name_map.keys() {
+            if let Some(friendly_name) = adapter_name_map.get(guid) {
+                println!("{} {}", guid, friendly_name);
+            }
+        }
+    }
 
     // Print the number of interfaces.
     println!("{} interfaces:", stats.len());
