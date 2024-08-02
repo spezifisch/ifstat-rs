@@ -15,6 +15,9 @@ clap = { version = "4.5", features = ["derive"] }
 lazy_static = "1.5"
 log = "0.4.22"
 env_logger = "0.11.5"
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.122"
+os_pipe = "1.2.1"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58.0", features = [
@@ -34,4 +37,6 @@ anyhow = "1.0.86"
 
 [dev-dependencies]
 assert_cmd = "2.0.15"
+libc = "0.2.155"
 predicates = "3.1.2"
+tempfile = "3.10.1"

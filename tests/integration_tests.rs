@@ -4,7 +4,7 @@ mod tests {
     use clap::Parser;
     use ifstat_rs::net_stats::parse_net_dev_stats; // get_net_dev_stats
     use ifstat_rs::opts::Opts;
-    use ifstat_rs::utils::{print_headers, print_stats}; // filter_zero_counters, shorten_name
+    use ifstat_rs::output::{print_headers, print_stats}; // filter_zero_counters, shorten_name
     use predicates::prelude::*;
     use std::collections::HashMap;
     use std::io::Cursor;

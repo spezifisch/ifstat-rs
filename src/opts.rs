@@ -59,6 +59,10 @@ pub struct Opts {
     )]
     pub hide_zero_counters: bool,
 
+    /// List all available network interfaces and exit
+    #[clap(long)]
+    pub list_interfaces: bool,
+
     /// Delay between updates in seconds (default is 1 second)
     #[clap(default_value = "1")]
     pub delay: f64,

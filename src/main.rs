@@ -1,17 +1,27 @@
 mod net_stats;
 mod opts;
-mod utils;
+mod output;
 
 use clap::Parser;
 use net_stats::get_net_dev_stats;
 use opts::Opts;
+use output::{print_headers, print_net_devices, print_stats};
 use tokio::time::{sleep, Duration};
-use utils::{print_headers, print_stats};
 
 #[tokio::main]
 async fn main() {
     // Parse command-line options
     let opts: Opts = Opts::parse();
+
+    if opts.list_interfaces {
+        // List interface names and exit.
+        match get_net_dev_stats() {
+            Ok(stats) => print_net_devices(&stats),
+            Err(e) => eprintln!("Error listing network interfaces: {}", e),
+        }
+        return;
+    }
+
     let interfaces: Vec<String> = opts
         .interfaces
         .clone()

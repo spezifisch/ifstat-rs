@@ -1,3 +1,5 @@
+// This file contains standalone-useful functions.
+
 use std::collections::HashMap;
 
 #[macro_export]
@@ -122,4 +124,12 @@ pub fn print_stats(
     writeln!(writer)?;
 
     Ok(())
+}
+
+// Prints interfaces names.
+pub fn print_net_devices(stats: &HashMap<String, (u64, u64)>) {
+    println!("{} interfaces:", stats.len());
+    for iface in stats.keys() {
+        println!("{}", iface);
+    }
 }
