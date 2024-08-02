@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::ffi::CStr;
 use std::io;
 use std::ptr::null_mut;
@@ -14,7 +14,7 @@ use windows::Win32::{
     Networking::WinSock::AF_UNSPEC,
 };
 
-pub fn get_net_dev_stats() -> std::result::Result<HashMap<String, (u64, u64)>, std::io::Error> {
+pub fn get_net_dev_stats() -> std::result::Result<IndexMap<String, (u64, u64)>, std::io::Error> {
     let mut size = 0;
 
     unsafe {
@@ -40,7 +40,7 @@ pub fn get_net_dev_stats() -> std::result::Result<HashMap<String, (u64, u64)>, s
         }
 
         let table_ref = &*table;
-        let mut stats = HashMap::new();
+        let mut stats = IndexMap::new();
 
         let rows = slice::from_raw_parts(table_ref.table.as_ptr(), table_ref.dwNumEntries as usize);
 
@@ -64,8 +64,8 @@ pub fn get_net_dev_stats() -> std::result::Result<HashMap<String, (u64, u64)>, s
     }
 }
 
-fn get_adapters_map() -> HashMap<String, String> {
-    let mut adapters_map = HashMap::new();
+fn get_adapters_map() -> IndexMap<String, String> {
+    let mut adapters_map = IndexMap::new();
 
     unsafe {
         let mut out_buf_len: u32 = 0;
@@ -118,9 +118,9 @@ fn get_adapters_map() -> HashMap<String, String> {
     adapters_map
 }
 
-pub fn get_device_string_to_name_map() -> HashMap<String, String> {
+pub fn get_device_string_to_name_map() -> IndexMap<String, String> {
     let adapters_map = get_adapters_map();
-    let mut device_string_map = HashMap::new();
+    let mut device_string_map = IndexMap::new();
 
     for (guid, name) in adapters_map {
         let device_string = format!(r"\DEVICE\TCPIP_{}", guid);

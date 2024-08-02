@@ -2,9 +2,11 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufReader};
 
+use indexmap::IndexMap;
+
 use crate::test_debug;
 
-pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
+pub fn get_net_dev_stats() -> Result<IndexMap<String, (u64, u64)>, std::io::Error> {
     let file = File::open("/proc/net/dev")?;
     let reader = BufReader::new(file);
     parse_net_dev_stats(reader)
@@ -12,8 +14,8 @@ pub fn get_net_dev_stats() -> Result<HashMap<String, (u64, u64)>, std::io::Error
 
 pub fn parse_net_dev_stats<R: io::BufRead>(
     reader: R,
-) -> Result<HashMap<String, (u64, u64)>, std::io::Error> {
-    let mut stats = HashMap::new();
+) -> Result<IndexMap<String, (u64, u64)>, std::io::Error> {
+    let mut stats = IndexMap::new();
     let lines: Vec<_> = reader.lines().collect::<Result<_, _>>()?;
     test_debug!("Parsing {} lines", lines.len());
 

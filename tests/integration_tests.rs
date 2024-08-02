@@ -5,8 +5,8 @@ mod tests {
     use ifstat_rs::net_stats::parse_net_dev_stats; // get_net_dev_stats
     use ifstat_rs::opts::Opts;
     use ifstat_rs::output::{print_headers, print_stats}; // filter_zero_counters, shorten_name
+    use indexmap::IndexMap;
     use predicates::prelude::*;
-    use std::collections::HashMap;
     use std::io::Cursor;
     use std::process::Command;
 
@@ -14,8 +14,8 @@ mod tests {
     fn test_parse_net_dev_stats() {
         let data = r#"Inter-|   Receive                                                |  Transmit
  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
-  eth0:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
-    lo:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
+   lo:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
+ eth0:  104013    1264    0    0    0     0          0         0   204386    1571    0    0    0     0       0          0
 "#;
         let reader = Cursor::new(data);
         let stats = parse_net_dev_stats(reader).unwrap();
@@ -27,7 +27,7 @@ mod tests {
 
     #[test]
     fn test_print_headers() {
-        let stats = HashMap::new();
+        let stats = IndexMap::new();
         let interfaces = vec!["eth0".to_string(), "lo".to_string()];
         let mut output = Vec::new();
         print_headers(&interfaces, &mut output, false, &stats).unwrap();
@@ -44,13 +44,13 @@ mod tests {
             ("lo".to_string(), (1000, 2000)),
         ]
         .into_iter()
-        .collect::<HashMap<_, _>>();
+        .collect::<IndexMap<_, _>>();
         let current = vec![
             ("eth0".to_string(), (2000, 3000)),
             ("lo".to_string(), (2000, 3000)),
         ]
         .into_iter()
-        .collect::<HashMap<_, _>>();
+        .collect::<IndexMap<_, _>>();
         let interfaces = vec!["eth0".to_string(), "lo".to_string()];
         let mut output = Vec::new();
         print_stats(&previous, &current, &interfaces, &mut output, false).unwrap();

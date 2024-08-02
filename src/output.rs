@@ -1,6 +1,6 @@
 // This file contains standalone-useful functions.
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 use crate::net_stats::get_device_string_to_name_map;
 
@@ -15,7 +15,7 @@ macro_rules! test_debug {
 
 /// Filters out interfaces that have zero RX and TX counters.
 pub fn filter_zero_counters(
-    stats: &HashMap<String, (u64, u64)>,
+    stats: &IndexMap<String, (u64, u64)>,
     interfaces: &[String],
 ) -> Vec<String> {
     interfaces
@@ -63,7 +63,7 @@ pub fn print_headers(
     interfaces: &[String],
     writer: &mut dyn std::io::Write,
     hide_zero_counters: bool,
-    stats: &HashMap<String, (u64, u64)>,
+    stats: &IndexMap<String, (u64, u64)>,
 ) -> std::io::Result<()> {
     let interfaces = if hide_zero_counters {
         filter_zero_counters(stats, interfaces)
@@ -99,8 +99,8 @@ pub fn print_headers(
 
 /// Prints the network interface statistics.
 pub fn print_stats(
-    previous: &HashMap<String, (u64, u64)>,
-    current: &HashMap<String, (u64, u64)>,
+    previous: &IndexMap<String, (u64, u64)>,
+    current: &IndexMap<String, (u64, u64)>,
     interfaces: &[String],
     writer: &mut dyn std::io::Write,
     hide_zero_counters: bool,
@@ -129,7 +129,7 @@ pub fn print_stats(
 }
 
 // Prints the names of network devices.
-pub fn print_net_devices(stats: &HashMap<String, (u64, u64)>) {
+pub fn print_net_devices(stats: &IndexMap<String, (u64, u64)>) {
     // Get the map of device strings to human-readable names.
     let adapter_name_map = get_device_string_to_name_map();
     if adapter_name_map.len() > 0 {
