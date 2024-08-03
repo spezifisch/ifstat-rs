@@ -61,7 +61,7 @@ jobs:
         continue-on-error: true
         if: matrix.target == 'x86_64-apple-darwin'
         run: |
-          # runners are ARM so Intel is cross-compiling
+          # runners are ARM so building Intel is cross-compiling
           rustup target install "${{ matrix.target }}"
           cargo test --target "${{ matrix.target }}"
           cargo build --release --target "${{ matrix.target }}"
@@ -99,7 +99,10 @@ jobs:
           timeout 60s ./build_output/ifstat-rs -V
           timeout 60s ./build_output/ifstat-rs --version
           timeout 60s ./build_output/ifstat-rs --list-interfaces
-          timeout 60s ./build_output/ifstat-rs -a 0 3
+          timeout 60s ./build_output/ifstat-rs -i foo,bar,baz 0 1
+          timeout 60s ./build_output/ifstat-rs -a 0 2
+          timeout 60s ./build_output/ifstat-rs -l 1 1
+          timeout 60s ./build_output/ifstat-rs --first-measurement 1 2 3
 
       - name: Run program on macOS
         continue-on-error: true
@@ -108,7 +111,10 @@ jobs:
           ./build_output/ifstat-rs -V
           ./build_output/ifstat-rs --version
           ./build_output/ifstat-rs --list-interfaces
-          ./build_output/ifstat-rs -a 0 3
+          ./build_output/ifstat-rs -i foo,bar,baz 0 1
+          ./build_output/ifstat-rs -a 0 2
+          ./build_output/ifstat-rs -l 1 1
+          ./build_output/ifstat-rs --first-measurement 1 2 3
 
       - name: Run program on Windows
         if: matrix.target == 'stable-x86_64-pc-windows-gnu'
@@ -116,4 +122,7 @@ jobs:
           ./build_output/ifstat-rs.exe -V
           ./build_output/ifstat-rs.exe --version
           ./build_output/ifstat-rs.exe --list-interfaces
-          ./build_output/ifstat-rs.exe -a 0 3
+          ./build_output/ifstat-rs.exe -i foo,bar,baz 0 1
+          ./build_output/ifstat-rs.exe -a 0 2
+          ./build_output/ifstat-rs.exe -l 1 1
+          ./build_output/ifstat-rs.exe --first-measurement 1 2 3
