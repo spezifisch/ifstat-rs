@@ -6,7 +6,7 @@ use clap::Parser;
 use net_stats::get_net_dev_stats;
 use opts::Opts;
 use output::{print_headers, print_net_devices, print_stats};
-use tokio::time::{sleep, Duration};
+use tokio::time::{interval, sleep, Duration};
 
 #[tokio::main]
 async fn main() {
@@ -67,6 +67,7 @@ async fn main() {
 
     let mut updates = 0;
     let mut lines_since_last_header = 0;
+    let mut interval = interval(Duration::from_secs_f64(regular_delay));
 
     loop {
         // Check if the number of updates has reached the specified count
@@ -109,7 +110,7 @@ async fn main() {
 
         updates += 1;
 
-        // Sleep for the regular delay
-        sleep(Duration::from_secs_f64(regular_delay)).await;
+        // Wait for the next tick
+        interval.tick().await;
     }
 }
