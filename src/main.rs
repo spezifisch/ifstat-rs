@@ -68,6 +68,7 @@ async fn main() {
     let mut updates = 0;
     let mut lines_since_last_header = 0;
     let mut interval = interval(Duration::from_secs_f64(regular_delay));
+    interval.tick().await; // First tick fires immediately.
 
     loop {
         // Check if the number of updates has reached the specified count
