@@ -102,12 +102,8 @@ unsafe fn get_interface_name(index: u32) -> Result<String, Error> {
                 let sdl = (if2 as *const libc::if_msghdr2).offset(1) as *const libc::sockaddr_dl;
                 let sdl_name = (*sdl).sdl_data.as_ptr() as *const i8;
                 let sdl_nlen = (*sdl).sdl_nlen as usize;
-                let sdl_data = std::slice::from_raw_parts(sdl_name as *const u8, sdl_nlen);
-                let name = CStr::from_bytes_with_nul(sdl_data)
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string();
+                let name_slice = std::slice::from_raw_parts(sdl_name as *const u8, sdl_nlen);
+                let name = std::str::from_utf8(name_slice).unwrap().to_string();
                 return Ok(name);
             }
         }
