@@ -21,14 +21,15 @@
 ## Installation
 
 To install `ifstat-rs`, ensure you have Rust and Cargo installed.
+Choose option A or B:
 
-### Release from crates.io
+### A: Release from crates.io
 
 ```sh
 cargo install ifstat-rs
 ```
 
-### Install from Development Git Repository
+### B: Install from Development Git Repository
 
 ```sh
 cargo build --release
