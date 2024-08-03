@@ -1,3 +1,7 @@
+// net_stats.rs
+// This file contains functions for fetching network interface statistics on macOS.
+// It retrieves the network interface names and their respective incoming and outgoing byte counts.
+
 use indexmap::IndexMap;
 use libc::{c_int, c_void, sysctl, CTL_NET, NET_RT_IFLIST2, PF_ROUTE};
 use std::io::Error;
@@ -9,9 +13,11 @@ use std::ptr::null_mut;
 /// bytes in and bytes out.
 pub fn get_net_dev_stats() -> Result<IndexMap<String, (u64, u64)>, Error> {
     unsafe {
+        // Define the MIB (Management Information Base) array for fetching network interface data
         let mut mib: [c_int; 6] = [CTL_NET, PF_ROUTE, 0, 0, NET_RT_IFLIST2, 0];
         let mut len: usize = 0;
 
+        // Get the length of the buffer needed to store the data
         if sysctl(
             mib.as_mut_ptr(),
             mib.len() as u32,
@@ -24,7 +30,9 @@ pub fn get_net_dev_stats() -> Result<IndexMap<String, (u64, u64)>, Error> {
             return Err(Error::last_os_error());
         }
 
+        // Allocate a buffer with the required length
         let mut buf = vec![0u8; len];
+        // Fetch the actual network interface data into the buffer
         if sysctl(
             mib.as_mut_ptr(),
             mib.len() as u32,
@@ -41,27 +49,24 @@ pub fn get_net_dev_stats() -> Result<IndexMap<String, (u64, u64)>, Error> {
         let mut next = buf.as_ptr();
         let end = buf.as_ptr().add(len);
 
+        // Iterate over the buffer to extract network interface statistics
         while next < end {
             let ifm = next as *const libc::if_msghdr2;
             next = next.add((*ifm).ifm_msglen as usize);
 
+            // Check if the message type is RTM_IFINFO2 (network interface info)
             if (*ifm).ifm_type as i32 == libc::RTM_IFINFO2 {
                 let if2 = &*(ifm as *const libc::if_msghdr2);
                 let data = &if2.ifm_data;
 
-                match get_interface_name(if2.ifm_index as u32) {
-                    Ok(name) => {
-                        let bytes_in = data.ifi_ibytes;
-                        let bytes_out = data.ifi_obytes;
-                        index_map.insert(name, (bytes_in, bytes_out));
-                    }
-                    Err(e) => {
-                        eprintln!(
-                            "Failed to get interface name for index {}: {}",
-                            if2.ifm_index, e
-                        );
-                    }
-                }
+                // Get the interface name by its index
+                let name = get_interface_name(if2.ifm_index as u32)?;
+
+                let bytes_in = data.ifi_ibytes;
+                let bytes_out = data.ifi_obytes;
+
+                // Insert the interface name and its statistics into the index map
+                index_map.insert(name, (bytes_in, bytes_out));
             }
         }
 
@@ -73,9 +78,11 @@ pub fn get_net_dev_stats() -> Result<IndexMap<String, (u64, u64)>, Error> {
 ///
 /// Returns the name as a `String`.
 unsafe fn get_interface_name(index: u32) -> Result<String, Error> {
+    // Define the MIB array for fetching network interface list
     let mut mib: [c_int; 6] = [CTL_NET, PF_ROUTE, 0, 0, NET_RT_IFLIST2, 0];
     let mut len: usize = 0;
 
+    // Get the length of the buffer needed to store the interface list
     if sysctl(
         mib.as_mut_ptr(),
         mib.len() as u32,
@@ -88,7 +95,9 @@ unsafe fn get_interface_name(index: u32) -> Result<String, Error> {
         return Err(Error::last_os_error());
     }
 
+    // Allocate a buffer with the required length
     let mut buf = vec![0u8; len];
+    // Fetch the actual interface list into the buffer
     if sysctl(
         mib.as_mut_ptr(),
         mib.len() as u32,
@@ -104,10 +113,12 @@ unsafe fn get_interface_name(index: u32) -> Result<String, Error> {
     let mut next = buf.as_ptr();
     let end = buf.as_ptr().add(len);
 
+    // Iterate over the buffer to find the interface with the specified index
     while next < end {
         let ifm = next as *const libc::if_msghdr;
         next = next.add((*ifm).ifm_msglen as usize);
 
+        // Check if the message type is RTM_IFINFO2 (network interface info)
         if (*ifm).ifm_type as i32 == libc::RTM_IFINFO2 {
             let if2 = &*(ifm as *const libc::if_msghdr2);
 
@@ -129,9 +140,75 @@ unsafe fn get_interface_name(index: u32) -> Result<String, Error> {
     ))
 }
 
-/// (Placeholder) Function to get a map of device strings to device names.
+/// Function to get a map of device strings to device names.
 ///
-/// Returns an empty `IndexMap` as a placeholder.
+/// Glues with our old Error-less code.
 pub fn get_device_string_to_name_map() -> IndexMap<String, String> {
-    IndexMap::new()
+    get_device_string_to_name_map_impl().unwrap_or(IndexMap::new())
+}
+
+/// Get a map of device strings to device names.
+///
+/// Returns an `IndexMap` where the key is the device string and the value is the device name.
+pub fn get_device_string_to_name_map_impl() -> Result<IndexMap<String, String>, Error> {
+    let mut device_string_map = IndexMap::new();
+
+    unsafe {
+        // Define the MIB (Management Information Base) array for fetching network interface data
+        let mut mib: [c_int; 6] = [CTL_NET, PF_ROUTE, 0, 0, NET_RT_IFLIST2, 0];
+        let mut len: usize = 0;
+
+        // Get the length of the buffer needed to store the data
+        if sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            null_mut(),
+            &mut len,
+            null_mut(),
+            0,
+        ) < 0
+        {
+            return Err(Error::last_os_error());
+        }
+
+        // Allocate a buffer with the required length
+        let mut buf = vec![0u8; len];
+        // Fetch the actual network interface data into the buffer
+        if sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            buf.as_mut_ptr() as *mut c_void,
+            &mut len,
+            null_mut(),
+            0,
+        ) < 0
+        {
+            return Err(Error::last_os_error());
+        }
+
+        let mut next = buf.as_ptr();
+        let end = buf.as_ptr().add(len);
+
+        // Iterate over the buffer to extract network interface statistics
+        while next < end {
+            let ifm = next as *const libc::if_msghdr2;
+            next = next.add((*ifm).ifm_msglen as usize);
+
+            // Check if the message type is RTM_IFINFO2 (network interface info)
+            if (*ifm).ifm_type as i32 == libc::RTM_IFINFO2 {
+                let if2 = &*(ifm as *const libc::if_msghdr2);
+
+                // Get the interface name by its index
+                let name = match get_interface_name(if2.ifm_index as u32) {
+                    Ok(n) => n,
+                    Err(_) => continue, // Skip if we can't get the interface name
+                };
+
+                // Insert the interface index and its name into the device string map
+                device_string_map.insert(if2.ifm_index.to_string(), name);
+            }
+        }
+    }
+
+    Ok(device_string_map)
 }
