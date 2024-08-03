@@ -31,7 +31,7 @@ async fn main() {
         .collect();
 
     // Get initial network statistics
-    let mut previous_stats = get_net_dev_stats().unwrap();
+    let mut previous_stats = get_net_dev_stats().expect("Failed reading network interface stats.");
 
     // Determine which interfaces to monitor
     let monitor_interfaces: Vec<String> = if opts.monitor_all {
