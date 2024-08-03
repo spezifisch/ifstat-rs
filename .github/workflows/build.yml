@@ -61,5 +61,5 @@ jobs:
       - name: Upload built binary
         uses: actions/upload-artifact@v4
         with:
-          name: ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
+          name: ifstat-rs-${{ matrix.target }}${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
           path: build_output/
