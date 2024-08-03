@@ -91,13 +91,17 @@ jobs:
           name: ifstat-rs-x86_64-unknown-linux-gnu
           path: ./linux
 
+      - name: "Debug: file listing"
+        continue-on-error: true
+        run: ls -lR linux
+
       - name: Upload Linux Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linux/ifstat-rs-x86_64-unknown-linux-gnu
+          asset_path: ./linux/ifstat-rs*
           asset_name: ifstat-rs-linux-x86_64
           asset_content_type: application/octet-stream
 
@@ -107,6 +111,10 @@ jobs:
         with:
           name: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
           path: ./windows
+
+      - name: "Debug: file listing"
+        continue-on-error: true
+        run: dir /s /b windows
 
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
@@ -125,6 +133,10 @@ jobs:
           name: ifstat-rs-aarch64-apple-darwin
           path: ./maca
 
+      - name: "Debug: file listing"
+        continue-on-error: true
+        run: ls -lR maca
+
       - name: Upload macOS ARM Release Asset
         uses: actions/upload-release-asset@v1
         env:
@@ -141,6 +153,10 @@ jobs:
         with:
           name: ifstat-rs-x86_64-apple-darwin
           path: ./maci
+
+      - name: "Debug: file listing"
+        continue-on-error: true
+        run: ls -lR maci
 
       - name: Upload macOS Intel Release Asset
         uses: actions/upload-release-asset@v1
