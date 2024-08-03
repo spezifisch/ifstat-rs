@@ -97,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linux/ifstat-rs-x86_64-unknown-linux-gnu
+          asset_path: ./linux
           asset_name: ifstat-rs-linux-x86_64
           asset_content_type: application/octet-stream
 
@@ -114,7 +114,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows/ifstat-rs-stable-x86_64-pc-windows-gnu.exe
+          asset_path: ./windows
           asset_name: ifstat-rs-windows-x86_64-gnu.exe
           asset_content_type: application/octet-stream
 
@@ -131,7 +131,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./maca/ifstat-rs-aarch64-apple-darwin
+          asset_path: ./maca
           asset_name: ifstat-rs-macos-arm
           asset_content_type: application/octet-stream
 
@@ -148,6 +148,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./maci/ifstat-rs-x86_64-apple-darwin
+          asset_path: ./maci
           asset_name: ifstat-rs-macos-intel
           asset_content_type: application/octet-stream
