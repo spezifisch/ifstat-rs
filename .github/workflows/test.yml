@@ -98,11 +98,11 @@ jobs:
           timeout 60s ./build_output/ifstat-rs --version
           timeout 60s ./build_output/ifstat-rs --help
           timeout 60s ./build_output/ifstat-rs --list-interfaces
-          timeout 60s ./build_output/ifstat-rs -i foo,bar,baz 0 1
-          timeout 60s ./build_output/ifstat-rs -a 0 2
+          timeout 60s ./build_output/ifstat-rs -i foo,bar,baz 0.1 1
+          timeout 60s ./build_output/ifstat-rs -a 0.1 2
           timeout 60s ./build_output/ifstat-rs -l 1 1
           timeout 60s ./build_output/ifstat-rs --first-measurement 1 2 3
-          timeout 60s ./build_output/ifstat-rs -z 0 1
+          timeout 60s ./build_output/ifstat-rs -z 0.1 1
 
       - name: Run program on macOS
         if: matrix.target == 'aarch64-apple-darwin' || matrix.target == 'x86_64-apple-darwin'
@@ -111,11 +111,11 @@ jobs:
           ./build_output/ifstat-rs --version
           ./build_output/ifstat-rs --help
           ./build_output/ifstat-rs --list-interfaces
-          ./build_output/ifstat-rs -i foo,bar,baz 0 1
-          ./build_output/ifstat-rs -a 0 2
+          ./build_output/ifstat-rs -i foo,bar,baz 0.1 1
+          ./build_output/ifstat-rs -a 0.1 2
           ./build_output/ifstat-rs -l 1 1
           ./build_output/ifstat-rs --first-measurement 1 2 3
-          ./build_output/ifstat-rs -z 0 1
+          ./build_output/ifstat-rs -z 0.1 1
 
       - name: Run program on Windows
         if: matrix.target == 'stable-x86_64-pc-windows-gnu'
@@ -124,8 +124,8 @@ jobs:
           ./build_output/ifstat-rs.exe --version
           ./build_output/ifstat-rs.exe --help
           ./build_output/ifstat-rs.exe --list-interfaces
-          ./build_output/ifstat-rs.exe -i foo,bar,baz 0 1
-          ./build_output/ifstat-rs.exe -a 0 2
+          ./build_output/ifstat-rs.exe -i foo,bar,baz 0.1 1
+          ./build_output/ifstat-rs.exe -a 0.1 2
           ./build_output/ifstat-rs.exe -l 1 1
           ./build_output/ifstat-rs.exe --first-measurement 1 2 3
-          ./build_output/ifstat-rs.exe -z 0 1
+          ./build_output/ifstat-rs.exe -z 0.1 1
