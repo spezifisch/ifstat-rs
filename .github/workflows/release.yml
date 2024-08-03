@@ -16,8 +16,10 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
             target: stable-x86_64-pc-windows-gnu
-          #- x86_64-apple-darwin # it seems we need xcode for that, we need the native macos runner
-          #- aarch64-apple-darwin # it seems we need xcode for that
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            target: x86_64-apple-darwin
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -54,7 +56,7 @@ jobs:
       - name: Build (cross)
         if: matrix.target == 'x86_64-apple-darwin'
         run: |
-          cargo build --release --target ${{ matrix.target }}
+          cargo build --release --target "${{ matrix.target }}"
           mkdir -p target/release
           cp target/*/release/ifstat-rs target/release
 
@@ -118,14 +120,12 @@ jobs:
 
       # Mac ARM
       - name: Download macOS ARM Artifact
-        continue-on-error: true
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-aarch64-apple-darwin
           path: ifstat-rs-aarch64-apple-darwin
 
       - name: Upload macOS ARM Release Asset
-        continue-on-error: true
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -137,14 +137,12 @@ jobs:
 
       # Mac Intel
       - name: Download macOS Intel Artifact
-        continue-on-error: true
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-x86_64-apple-darwin
           path: ifstat-rs-x86_64-apple-darwin
 
       - name: Upload macOS Intel Release Asset
-        continue-on-error: true
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
