@@ -20,6 +20,9 @@ serde_json = "1.0.122"
 os_pipe = "1.2.1"
 indexmap = "2.3.0"
 
+[target.'cfg(macos)'.dependencies]
+libc = "0.2.155"
+
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58.0", features = [
     "Win32_Foundation",
