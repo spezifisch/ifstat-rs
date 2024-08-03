@@ -45,13 +45,27 @@ ifstat-rs --version
 
 - `-a`: Monitor all interfaces.
 - `-l`: Include loopback interfaces.
+- `-z`: Hide inactive interfaces where the counter stays zero.
 - `-i <interfaces>`: Specify interfaces to monitor, separated by commas (e.g., `-i eth0,lo`).
 - `--list-interfaces`: List all interfaces, with their friendly names where supported (currently Windows).
 - `--first-measurement <seconds>`: Set delay before the first measurement (default is the same as --delay).
 - `<delay>`: Delay between updates in seconds (default is 1 second).
 - `<count>`: Number of updates before stopping (default is unlimited).
 
+By default, ifstat-rs shows all interfaces excluding "lo".
+
 ### Examples
+
+Default usage:
+
+```console
+$ ifstat-rs
+       eth0
+ KB/s in  KB/s out
+ 8724.76    225.89
+10356.68    259.95
+13281.06    294.90
+```
 
 Monitor specific interfaces:
 
@@ -65,7 +79,7 @@ ifstat-rs -i "\DEVICE\TCPIP_{66963456-C690-4E4E-940B-E7C915B9A07D},\DEVICE\TCPIP
 Lookup list of interfaces, (on Windows: with Adapter Names where present):
 
 ```console
-ifstat-rs --list-interfaces
+$ ifstat-rs --list-interfaces
  3 adapters:
 \DEVICE\TCPIP_{66963456-C690-4E4E-940B-E7C915B9A07D} Ethernet
 \DEVICE\TCPIP_{3CE6ABDA-3928-11EF-BFD9-806E6F6E6963} Loopback Pseudo-Interface 1
