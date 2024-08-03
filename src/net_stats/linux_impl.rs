@@ -85,7 +85,5 @@ pub fn parse_net_dev_stats<R: BufRead>(
 ///
 /// A HashMap where the keys are device strings and the values are friendly names.
 pub fn get_device_string_to_name_map() -> HashMap<String, String> {
-    // This function is currently a placeholder and needs to be implemented.
-    HashMap::new()
-    // TODO
+    HashMap::new() // This isn't really crucial on linux but we *could* implement it.
 }

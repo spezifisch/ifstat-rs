@@ -5,7 +5,6 @@
 use indexmap::IndexMap;
 use std::ffi::CStr;
 use std::io;
-use std::ptr::null_mut;
 use std::slice;
 
 use widestring::U16CString;
@@ -18,11 +17,26 @@ use windows::Win32::{
     Networking::WinSock::AF_UNSPEC,
 };
 
+#[derive(Debug)]
+struct SomeError;
+
+impl From<std::ffi::NulError> for SomeError {
+    fn from(_: std::ffi::NulError) -> Self {
+        SomeError
+    }
+}
+
+impl From<std::ffi::FromBytesWithNulError> for SomeError {
+    fn from(_: std::ffi::FromBytesWithNulError) -> Self {
+        SomeError
+    }
+}
+
 /// Retrieves network device statistics including received and transmitted bytes.
 ///
 /// # Returns
 ///
-/// A result containing an IndexMap where the keys are the device names and the values are tuples of (received bytes, transmitted bytes).
+/// A result containing an IndexMap where the keys are the device names and the values are tuples of (received bytes$
 /// In case of an error, returns an io::Error.
 pub fn get_net_dev_stats() -> std::result::Result<IndexMap<String, (u64, u64)>, std::io::Error> {
     let mut size = 0;
@@ -85,8 +99,8 @@ pub fn get_net_dev_stats() -> std::result::Result<IndexMap<String, (u64, u64)>, 
 ///
 /// # Returns
 ///
-/// An IndexMap where the keys are adapter GUIDs and the values are friendly names.
-fn get_adapters_map() -> IndexMap<String, String> {
+/// A Result containing an IndexMap where the keys are adapter GUIDs and the values are friendly names.
+fn get_adapters_map() -> Result<IndexMap<String, String>, SomeError> {
     let mut adapters_map = IndexMap::new();
 
     unsafe {
@@ -96,12 +110,12 @@ fn get_adapters_map() -> IndexMap<String, String> {
             AF_UNSPEC.0 as u32,
             GAA_FLAG_INCLUDE_PREFIX,
             None,
-            Some(null_mut()),
+            Some(std::ptr::null_mut()),
             &mut out_buf_len,
         );
 
         if out_buf_len == 0 {
-            return adapters_map;
+            return Ok(adapters_map);
         }
 
         // Allocate buffer with the required size
@@ -118,25 +132,22 @@ fn get_adapters_map() -> IndexMap<String, String> {
         );
 
         if result != NO_ERROR.0 {
-            return adapters_map;
+            return Ok(adapters_map);
         }
 
         // Iterate over the linked list of adapter addresses
         let mut current_adapter = adapter_addresses;
         while !current_adapter.is_null() {
-            // Convert adapter name and friendly name to strings
             let adapter_name_ptr = (*current_adapter).AdapterName.0;
-            let adapter_name = match CStr::from_ptr(adapter_name_ptr as *const i8).to_str() {
-                Ok(name) => name.to_owned(),
-                Err(_) => continue, // Skip invalid UTF-8 entries
-            };
+            let adapter_name = CStr::from_ptr(adapter_name_ptr as *const i8)
+                .to_str()
+                .expect("Invalid UTF-8")
+                .to_owned();
 
             let friendly_name_ptr = (*current_adapter).FriendlyName.0;
-            let friendly_name = match U16CString::from_ptr_str(friendly_name_ptr).to_string_lossy()
-            {
-                Some(name) => name.to_owned(),
-                None => continue, // Skip invalid UTF-16 entries
-            };
+            let friendly_name = U16CString::from_ptr_str(friendly_name_ptr)
+                .to_string_lossy()
+                .to_owned();
 
             adapters_map.insert(adapter_name, friendly_name);
 
@@ -144,7 +155,7 @@ fn get_adapters_map() -> IndexMap<String, String> {
         }
     }
 
-    adapters_map
+    Ok(adapters_map)
 }
 
 /// Retrieves a map of device strings to friendly names.
