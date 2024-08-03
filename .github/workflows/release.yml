@@ -64,8 +64,10 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ifstat-rs-${{ matrix.target }}${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
+          # from ->
           path: target/release/ifstat-rs${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
+          # to ->
+          name: ifstat-rs-${{ matrix.target }}${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
 
   release:
     runs-on: ubuntu-latest
@@ -101,7 +103,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linux/ifstat-rs*
+          # from ->
+          asset_path: ./linux/ifstat-rs
+          # to ->
           asset_name: ifstat-rs-linux-x86_64
           asset_content_type: application/octet-stream
 
@@ -122,7 +126,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows/ifstat-rs-stable-x86_64-pc-windows-gnu.exe
+          asset_path: ./windows/ifstat-rs.exe
           asset_name: ifstat-rs-windows-x86_64-gnu.exe
           asset_content_type: application/octet-stream
 
@@ -143,7 +147,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./maca/ifstat-rs-aarch64-apple-darwin
+          asset_path: ./maca/ifstat-rs
           asset_name: ifstat-rs-macos-arm
           asset_content_type: application/octet-stream
 
@@ -164,6 +168,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./maci/ifstat-rs-x86_64-apple-darwin
+          asset_path: ./maci/ifstat-rs
           asset_name: ifstat-rs-macos-intel
           asset_content_type: application/octet-stream
