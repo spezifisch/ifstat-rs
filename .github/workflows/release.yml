@@ -149,7 +149,7 @@ jobs:
 
       - name: "Debug: file listing"
         continue-on-error: true
-        run: Get-ChildItem -Recurse -Path windows
+        run: ls -lR windows
 
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
