@@ -51,14 +51,12 @@ jobs:
           cargo build --release
 
       - name: Build and Test on macOS ARM
-        continue-on-error: true
         if: matrix.target == 'aarch64-apple-darwin'
         run: |
           cargo test
           cargo build --release
 
       - name: Build and Test on macOS Intel
-        continue-on-error: true
         if: matrix.target == 'x86_64-apple-darwin'
         run: |
           # runners are ARM so building Intel is cross-compiling
@@ -104,6 +102,7 @@ jobs:
           timeout 60s ./build_output/ifstat-rs -a 0 2
           timeout 60s ./build_output/ifstat-rs -l 1 1
           timeout 60s ./build_output/ifstat-rs --first-measurement 1 2 3
+          timeout 60s ./build_output/ifstat-rs -z 0 1
 
       - name: Run program on macOS
         if: matrix.target == 'aarch64-apple-darwin' || matrix.target == 'x86_64-apple-darwin'
@@ -116,6 +115,7 @@ jobs:
           ./build_output/ifstat-rs -a 0 2
           ./build_output/ifstat-rs -l 1 1
           ./build_output/ifstat-rs --first-measurement 1 2 3
+          ./build_output/ifstat-rs -z 0 1
 
       - name: Run program on Windows
         if: matrix.target == 'stable-x86_64-pc-windows-gnu'
@@ -128,3 +128,4 @@ jobs:
           ./build_output/ifstat-rs.exe -a 0 2
           ./build_output/ifstat-rs.exe -l 1 1
           ./build_output/ifstat-rs.exe --first-measurement 1 2 3
+          ./build_output/ifstat-rs.exe -z 0 1
