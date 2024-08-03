@@ -36,7 +36,13 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install target
+      # Install System deps
+      - name: Install cross deps (Linux)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      # Install Target
+      - name: Install Rust target
         if: matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-unknown-linux-gnu'
         run: rustup target add "${{ matrix.target }}"
 

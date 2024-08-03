@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux-win:
+  build:
     runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
@@ -36,12 +36,15 @@ jobs:
       - name: Install target
         run: rustup target add "${{ matrix.target }}"
 
-      - name: Install dependencies on Linux
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
+          apt-get update
+          apt-get install -y gcc-multilib g++-multilib
           if [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ]; then
-            sudo apt-get install -y mingw-w64
+            apt-get install -y mingw-w64
+          fi
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           fi
 
       - name: Set environment variables
