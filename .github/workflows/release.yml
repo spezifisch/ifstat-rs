@@ -70,7 +70,7 @@ jobs:
 
       # Output
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           # from ->
           path: target/release/ifstat-rs${{ matrix.target == 'stable-x86_64-pc-windows-gnu' && '.exe' || '' }}
@@ -96,14 +96,14 @@ jobs:
 
       # Linux (x86_64)
       - name: Download Linux x86_64 Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ifstat-rs-x86_64-unknown-linux-gnu
           path: ./linux_x86_64
 
       - name: "Debug: file listing"
         continue-on-error: true
-        run: ls -lR linux
+        run: ls -lR linux_x86_64
 
       - name: Upload Linux x86_64 Release Asset
         uses: actions/upload-release-asset@v1
@@ -119,14 +119,14 @@ jobs:
 
       # Linux (aarch64)
       - name: Download Linux aarch64 Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ifstat-rs-aarch64-unknown-linux-gnu
           path: ./linux_aarch64
 
       - name: "Debug: file listing"
         continue-on-error: true
-        run: ls -lR linux
+        run: ls -lR linux_aarch64
 
       - name: Upload Linux aarch64 Release Asset
         uses: actions/upload-release-asset@v1
@@ -142,7 +142,7 @@ jobs:
 
       # Windows
       - name: Download Windows Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
           path: ./windows
@@ -163,7 +163,7 @@ jobs:
 
       # Mac ARM
       - name: Download macOS ARM Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ifstat-rs-aarch64-apple-darwin
           path: ./maca
@@ -184,7 +184,7 @@ jobs:
 
       # Mac Intel
       - name: Download macOS Intel Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ifstat-rs-x86_64-apple-darwin
           path: ./maci
