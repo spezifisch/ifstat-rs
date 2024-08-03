@@ -1,6 +1,5 @@
 use indexmap::IndexMap;
 use libc::{c_int, c_void, sysctl, CTL_NET, NET_RT_IFLIST2, PF_ROUTE};
-use std::ffi::CStr;
 use std::io::Error;
 use std::ptr::null_mut;
 
