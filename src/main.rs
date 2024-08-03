@@ -60,10 +60,14 @@ async fn main() {
 
     // Use first_measurement delay if provided, otherwise use delay
     let first_delay = opts.first_measurement.unwrap_or(opts.delay);
-    let regular_delay = opts.delay;
 
-    // Sleep for the first delay
-    sleep(Duration::from_secs_f64(first_delay)).await;
+    // Ensure that regular_delay is non-zero, default to 1 ms
+    let regular_delay = if opts.delay == 0.0 { 0.001 } else { opts.delay };
+
+    if first_delay != regular_delay {
+        // Sleep for the first delay
+        sleep(Duration::from_secs_f64(first_delay)).await;
+    }
 
     let mut updates = 0;
     let mut lines_since_last_header = 0;

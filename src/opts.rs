@@ -63,14 +63,48 @@ pub struct Opts {
     #[clap(long)]
     pub list_interfaces: bool,
 
-    /// Delay between updates in seconds (default is 1 second)
-    #[clap(default_value = "1")]
-    pub delay: f64,
-
-    /// Delay before the first measurement in seconds (default is same as --delay)
-    #[clap(long)]
+    /// Delay before the first measurement in seconds (must be >= 0 if set)
+    #[arg(long, value_parser = parse_non_negative_f64)]
     pub first_measurement: Option<f64>,
 
-    /// Number of updates before stopping (default is unlimited)
+    /// Delay between updates in seconds (must be > 0)
+    #[arg(default_value = "1", value_parser = parse_positive_f64)]
+    pub delay: f64,
+
+    /// Number of updates before stopping (must be > 0 if set)
+    #[arg(value_parser = parse_positive_u64)]
     pub count: Option<u64>,
+}
+
+fn parse_positive_f64(src: &str) -> Result<f64, String> {
+    let val: f64 = src
+        .parse()
+        .map_err(|_| format!("`{}` is not a valid number", src))?;
+    if val <= 0.0 {
+        Err(format!("`{}` must be greater than 0", src))
+    } else {
+        Ok(val)
+    }
+}
+
+fn parse_non_negative_f64(src: &str) -> Result<f64, String> {
+    let val: f64 = src
+        .parse()
+        .map_err(|_| format!("`{}` is not a valid number", src))?;
+    if val < 0.0 {
+        Err(format!("`{}` must be greater than or equal to 0", src))
+    } else {
+        Ok(val)
+    }
+}
+
+fn parse_positive_u64(src: &str) -> Result<u64, String> {
+    let val: u64 = src
+        .parse()
+        .map_err(|_| format!("`{}` is not a valid number", src))?;
+    if val == 0 {
+        Err(format!("`{}` must be greater than 0", src))
+    } else {
+        Ok(val)
+    }
 }
