@@ -143,7 +143,7 @@ jobs:
 
       - name: "Debug: file listing"
         continue-on-error: true
-        run: dir /s /b windows
+        run: Get-ChildItem -Recurse -Path windows
 
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
