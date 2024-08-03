@@ -89,7 +89,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-x86_64-unknown-linux-gnu
-          path: ifstat-rs-x86_64-unknown-linux-gnu
+          path: ./linux
 
       - name: Upload Linux Release Asset
         uses: actions/upload-release-asset@v1
@@ -97,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ifstat-rs-x86_64-unknown-linux-gnu
+          asset_path: ./linux/ifstat-rs-x86_64-unknown-linux-gnu
           asset_name: ifstat-rs-linux-x86_64
           asset_content_type: application/octet-stream
 
@@ -106,7 +106,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
-          path: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
+          path: ./windows
 
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
@@ -114,7 +114,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ifstat-rs-stable-x86_64-pc-windows-gnu.exe
+          asset_path: ./windows/ifstat-rs-stable-x86_64-pc-windows-gnu.exe
           asset_name: ifstat-rs-windows-x86_64-gnu.exe
           asset_content_type: application/octet-stream
 
@@ -123,7 +123,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-aarch64-apple-darwin
-          path: ifstat-rs-aarch64-apple-darwin
+          path: ./maca
 
       - name: Upload macOS ARM Release Asset
         uses: actions/upload-release-asset@v1
@@ -131,7 +131,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ifstat-rs-aarch64-apple-darwin
+          asset_path: ./maca/ifstat-rs-aarch64-apple-darwin
           asset_name: ifstat-rs-macos-arm
           asset_content_type: application/octet-stream
 
@@ -140,7 +140,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-x86_64-apple-darwin
-          path: ifstat-rs-x86_64-apple-darwin
+          path: ./maci
 
       - name: Upload macOS Intel Release Asset
         uses: actions/upload-release-asset@v1
@@ -148,6 +148,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ifstat-rs-x86_64-apple-darwin
+          asset_path: ./maci/ifstat-rs-x86_64-apple-darwin
           asset_name: ifstat-rs-macos-intel
           asset_content_type: application/octet-stream
