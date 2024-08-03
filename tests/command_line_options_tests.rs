@@ -2,7 +2,6 @@
 mod command_line_options_tests {
     use clap::Parser;
     use ifstat_rs::opts::Opts;
-    use tokio::sync::broadcast::error;
 
     #[test]
     fn test_valid_command_line_options() {
@@ -72,13 +71,13 @@ mod command_line_options_tests {
     fn test_first_measurement_negative_should_fail() {
         let result = Opts::try_parse_from(&[
             "ifstat-rs",
-            "--first-measurement=-1",
             "1", // Delay
+            "--first-measurement=-1",
         ]);
         assert!(result.is_err());
         let error_message = format!("{}", result.err().unwrap());
         assert!(
-            error_message.contains("`-1` must be greater than or equal to 0"),
+            error_message.contains("must be greater than or equal to 0"),
             "errmsg={}",
             error_message
         );
@@ -89,12 +88,23 @@ mod command_line_options_tests {
         let result = Opts::try_parse_from(&[
             "ifstat-rs",
             "1", // Delay
-            "--count",
             "0", // Count
         ]);
         assert!(result.is_err());
         let error_message = format!("{}", result.err().unwrap());
-        assert!(error_message.contains("`0` must be greater than 0"));
+        assert!(error_message.contains("must be greater than 0"));
+    }
+
+    #[test]
+    fn test_count_negative_unescaped_should_fail() {
+        let result = Opts::try_parse_from(&[
+            "ifstat-rs",
+            "1",  // Delay
+            "-1", // Count
+        ]);
+        assert!(result.is_err());
+        let error_message = format!("{}", result.err().unwrap());
+        assert!(error_message.contains("unexpected argument '-1'"));
     }
 
     #[test]
@@ -102,11 +112,11 @@ mod command_line_options_tests {
         let result = Opts::try_parse_from(&[
             "ifstat-rs",
             "1", // Delay
-            "--count",
+            "--",
             "-1", // Count
         ]);
         assert!(result.is_err());
         let error_message = format!("{}", result.err().unwrap());
-        assert!(error_message.contains("`-1` must be greater than 0"));
+        assert!(error_message.contains("not a valid number > 0"));
     }
 }

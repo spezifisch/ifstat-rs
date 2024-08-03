@@ -101,7 +101,7 @@ fn parse_non_negative_f64(src: &str) -> Result<f64, String> {
 fn parse_positive_u64(src: &str) -> Result<u64, String> {
     let val: u64 = src
         .parse()
-        .map_err(|_| format!("`{}` is not a valid number", src))?;
+        .map_err(|_| format!("`{}` is not a valid number > 0", src))?;
     if val == 0 {
         Err(format!("`{}` must be greater than 0", src))
     } else {
