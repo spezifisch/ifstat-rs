@@ -38,13 +38,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install -y gcc-multilib g++-multilib
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
           if [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ]; then
-            apt-get install -y mingw-w64
+            sudo apt-get install -y mingw-w64
           fi
           if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+            sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           fi
 
       - name: Set environment variables
