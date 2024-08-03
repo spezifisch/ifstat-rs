@@ -2,14 +2,17 @@
 mod tests {
     use assert_cmd::prelude::*;
     use clap::Parser;
+    #[cfg(target_os = "linux")]
     use ifstat_rs::net_stats::parse_net_dev_stats; // get_net_dev_stats
     use ifstat_rs::opts::Opts;
     use ifstat_rs::output::{print_headers, print_stats}; // filter_zero_counters, shorten_name
     use indexmap::IndexMap;
     use predicates::prelude::*;
+    #[cfg(target_os = "linux")]
     use std::io::Cursor;
     use std::process::Command;
 
+    #[cfg(target_os = "linux")]
     #[test]
     fn test_parse_net_dev_stats() {
         let data = r#"Inter-|   Receive                                                |  Transmit
@@ -124,6 +127,7 @@ mod tests {
             .stdout(predicate::str::is_match(r"ifstat-rs \d+\.\d+\.\d+\n").unwrap());
     }
 
+    #[cfg(target_os = "linux")]
     #[test]
     fn test_edge_cases() {
         let data = r#"
