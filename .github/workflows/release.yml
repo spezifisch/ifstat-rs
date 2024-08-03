@@ -14,6 +14,8 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
           - os: windows-latest
             target: stable-x86_64-pc-windows-gnu
           - os: macos-latest
@@ -35,7 +37,7 @@ jobs:
           override: true
 
       - name: Install target
-        if: matrix.target == 'x86_64-apple-darwin'
+        if: matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-unknown-linux-gnu'
         run: rustup target add "${{ matrix.target }}"
 
       - name: Set environment variables
@@ -44,17 +46,17 @@ jobs:
           echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
       # Tests
-      - name: Run tests
-        if: matrix.target != 'x86_64-apple-darwin'
+      - name: Run tests (native only)
+        if: matrix.target != 'x86_64-apple-darwin' || matrix.target != 'aarch64-unknown-linux-gnu'
         run: cargo test --release
 
       # Builds
       - name: Build (native)
-        if: matrix.target != 'x86_64-apple-darwin'
+        if: matrix.target != 'x86_64-apple-darwin' || matrix.target != 'aarch64-unknown-linux-gnu'
         run: cargo build --release
 
       - name: Build (cross)
-        if: matrix.target == 'x86_64-apple-darwin'
+        if: matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           cargo build --release --target "${{ matrix.target }}"
           mkdir -p target/release
@@ -86,27 +88,50 @@ jobs:
           draft: true
           prerelease: false
 
-      # Linux
-      - name: Download Linux Artifact
+      # Linux (x86_64)
+      - name: Download Linux x86_64 Artifact
         uses: actions/download-artifact@v2
         with:
           name: ifstat-rs-x86_64-unknown-linux-gnu
-          path: ./linux
+          path: ./linux_x86_64
 
       - name: "Debug: file listing"
         continue-on-error: true
         run: ls -lR linux
 
-      - name: Upload Linux Release Asset
+      - name: Upload Linux x86_64 Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           # from ->
-          asset_path: ./linux/ifstat-rs
+          asset_path: ./linux_x86_64/ifstat-rs
           # to ->
           asset_name: ifstat-rs-linux-x86_64
+          asset_content_type: application/octet-stream
+
+      # Linux (aarch64)
+      - name: Download Linux aarch64 Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ifstat-rs-aarch64-unknown-linux-gnu
+          path: ./linux_aarch64
+
+      - name: "Debug: file listing"
+        continue-on-error: true
+        run: ls -lR linux
+
+      - name: Upload Linux aarch64 Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          # from ->
+          asset_path: ./linux_aarch64/ifstat-rs
+          # to ->
+          asset_name: ifstat-rs-linux-aarch64
           asset_content_type: application/octet-stream
 
       # Windows
