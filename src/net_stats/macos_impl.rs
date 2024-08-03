@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use libc::{c_int, c_void, sysctl, AF_INET6, CTL_NET, NET_RT_IFLIST2, PF_ROUTE};
+use libc::{c_int, c_void, sysctl, CTL_NET, NET_RT_IFLIST2, PF_ROUTE};
 use std::ffi::CStr;
 use std::io::Error;
 use std::ptr::null_mut;
@@ -42,11 +42,11 @@ pub fn get_net_dev_stats() -> Result<IndexMap<String, (u64, u64)>, Error> {
             let ifm = next as *const libc::if_msghdr2;
             next = next.add((*ifm).ifm_msglen as usize);
 
-            if (*ifm).ifm_type == libc::RTM_IFINFO2 {
+            if (*ifm).ifm_type as i32 == libc::RTM_IFINFO2 {
                 let if2 = &*(ifm as *const libc::if_msghdr2);
                 let data = &if2.ifm_data;
 
-                let name = get_interface_name(if2.ifm_index)?;
+                let name = get_interface_name(if2.ifm_index as u32)?;
 
                 let bytes_in = data.ifi_ibytes;
                 let bytes_out = data.ifi_obytes;
@@ -95,13 +95,14 @@ unsafe fn get_interface_name(index: u32) -> Result<String, Error> {
         let ifm = next as *const libc::if_msghdr;
         next = next.add((*ifm).ifm_msglen as usize);
 
-        if (*ifm).ifm_type == libc::RTM_IFINFO2 {
+        if (*ifm).ifm_type as i32 == libc::RTM_IFINFO2 {
             let if2 = &*(ifm as *const libc::if_msghdr2);
 
-            if if2.ifm_index == index {
+            if if2.ifm_index as u32 == index {
                 let sdl = (if2 as *const libc::if_msghdr2).offset(1) as *const libc::sockaddr_dl;
-                let sdl_data =
-                    std::slice::from_raw_parts((*sdl).sdl_data.as_ptr(), (*sdl).sdl_nlen as usize);
+                let sdl_name = (*sdl).sdl_data.as_ptr() as *const i8;
+                let sdl_nlen = (*sdl).sdl_nlen as usize;
+                let sdl_data = std::slice::from_raw_parts(sdl_name as *const u8, sdl_nlen);
                 let name = CStr::from_bytes_with_nul(sdl_data)
                     .unwrap()
                     .to_str()
@@ -116,4 +117,10 @@ unsafe fn get_interface_name(index: u32) -> Result<String, Error> {
         std::io::ErrorKind::NotFound,
         "Interface name not found",
     ))
+}
+
+pub fn get_device_string_to_name_map() -> IndexMap<String, String> {
+    let device_string_map = IndexMap::new();
+
+    device_string_map
 }
