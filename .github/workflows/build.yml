@@ -52,14 +52,26 @@ jobs:
           # build target for rust
           echo "TARGET=${{ matrix.target }}" >> $GITHUB_ENV
 
-      - name: Build
+      - name: Build Binary
         run: |
           cargo build --target "${{ matrix.target }}"
           mkdir -p build_output
           cp target/${{ matrix.target }}/debug/ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }} build_output/
 
-      - name: Upload built binary
+      - name: Upload built Binary
         uses: actions/upload-artifact@v4
         with:
           name: ifstat-rs-${{ matrix.target }}${{ matrix.target == 'x86_64-pc-windows-gnu' && '.exe' || '' }}
+          path: build_output/
+
+      - name: Build Library
+        run: |
+          cargo build --target "${{ matrix.target }}" --lib
+          mkdir -p build_output
+          cp target/${{ matrix.target }}/debug/ifstat-rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.dll' || '.so' }} build_output/
+
+      - name: Upload built Library
+        uses: actions/upload-artifact@v4
+        with:
+          name: ifstat-rs-${{ matrix.target }}${{ matrix.target == 'x86_64-pc-windows-gnu' && '.dll' || '.so' }}
           path: build_output/
