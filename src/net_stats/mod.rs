@@ -57,7 +57,7 @@ pub extern "C" fn GetNetDevStats() -> *mut c_char {
 pub extern "C" fn FreeCString(s: *mut c_char) {
     if !s.is_null() {
         unsafe {
-            let _ = CString::from_raw(s); // This will automatically free the memory
+            drop(CString::from_raw(s));
         }
     }
 }
