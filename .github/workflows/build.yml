@@ -62,10 +62,16 @@ jobs:
         run: |
           cargo build --target "${{ matrix.target }}" --lib
           mkdir -p build_output
-          cp target/${{ matrix.target }}/debug/libifstat_rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.dll' || '.so' }} build_output/
+
+          # handle different name under windows          
+          if [ "${{ matrix.target }}" != "x86_64-pc-windows-gnu" ]; then
+            cp target/${{ matrix.target }}/debug/libifstat_rs${{ matrix.target == 'x86_64-pc-windows-gnu' && '.dll' || '.so' }} build_output/
+          else
+            cp target/${{ matrix.target }}/debug/ifstat_rs.dll build_output/
+          fi
 
       - name: Upload built Binary + Library
         uses: actions/upload-artifact@v4
         with:
           path: build_output/
-          name: ifstat-rs-${{ matrix.target }}-bundle.zip
+          name: ifstat-rs-${{ matrix.target }}-bundle
