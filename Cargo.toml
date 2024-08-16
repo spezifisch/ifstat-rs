@@ -24,7 +24,7 @@ libc = "0.2.155"
 [lib]
 name = "ifstat_rs"
 path = "src/lib.rs"
-crate-type = ["cdylib"]
+crate-type = ["lib", "cdylib"]
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58.0", features = [
