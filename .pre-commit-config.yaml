@@ -1,0 +1,10 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+    -   repo: https://github.com/spezifisch/pre-commit-rust-hooks
+        rev: 2d455c9098a065204a85886b4604cab238684019
+        hooks:
+            -   id: fmt
+            -   id: check
+            -   id: clippy
+            -   id: test
